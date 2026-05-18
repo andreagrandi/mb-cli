@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-- Document changelog update workflow in `AGENTS.md`, add a pull request template, and add a CI check that requires a `CHANGELOG.md` entry for user-visible changes (#20)
+- Document changelog update workflow in `AGENTS.md` and add a pull request template prompting contributors to update `CHANGELOG.md` for user-visible changes (#20)
 
 ## [0.2.0] - 2026-03-12
 

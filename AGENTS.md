@@ -113,9 +113,7 @@ release note.
 ### Opting out
 
 The PR template has a "Changelog updated" checkbox. If a PR genuinely needs
-no entry, tick the "No changelog entry needed" box and briefly say why. The
-`changelog` CI check also honours the `no-changelog` label for the same
-purpose.
+no entry, tick the "No changelog entry needed" box and briefly say why.
 
 ## Release Process
 
