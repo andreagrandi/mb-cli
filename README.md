@@ -263,9 +263,57 @@ The dashboard and parameter workflows use these Metabase endpoints:
 
 ## PII Redaction
 
-When AI agents use mb-cli directly (via shell commands), query results containing PII (emails, names, phone numbers) flow through stdout into the model's context. This feature prevents agents from seeing sensitive data by redacting PII columns before data leaves the client layer. Agents can still cross-reference records using IDs; for actual PII values, the user can check directly in Metabase.
+When AI agents use mb-cli directly (via shell commands), query results containing PII (emails, names, phone numbers) flow through stdout into the model's context. mb-cli prevents that by replacing PII column values with `[REDACTED]` before data leaves the client layer. Agents can still cross-reference records using IDs; for actual PII values, the user can check directly in Metabase.
 
-The approach leverages Metabase's own field semantic types (type/Email, type/Name, etc.). Redaction is ON by default — no configuration needed. Users must explicitly opt out with `MB_REDACT_PII=false` or `--redact-pii=false`. This is defense-in-depth: it makes the default path safe. An agent would have to actively choose to bypass it (a visible, auditable action).
+Redaction is **ON by default**. Disabling it is a visible, auditable action: when the flag or env var is set to `false`, mb-cli prints `Warning: PII redaction is disabled` to stderr on every invocation.
+
+### What gets redacted
+
+Columns whose Metabase field semantic type is one of:
+
+`type/Email`, `type/Name`, `type/Phone`, `type/Address`, `type/City`, `type/State`, `type/ZipCode`, `type/Country`, `type/Latitude`, `type/Longitude`, `type/Birthdate`, `type/AvatarURL`, `type/URL`, `type/ImageURL`, `type/Company`.
+
+For native SQL results, Metabase does not always populate the semantic type on result columns. mb-cli fills it in by fetching field metadata from the source database and matching by column name. When two fields share a name and disagree, mb-cli picks the PII type (err on the side of caution).
+
+### Where redaction applies
+
+| Command | Redacted? |
+|---------|-----------|
+| `query sql` | Yes (with column-name enrichment) |
+| `query filter` (MBQL) | Yes |
+| `card run` (with or without `--param`) | Yes (with column-name enrichment) |
+| `dashboard run-card` | Yes (with column-name enrichment) |
+| `table data` | Yes |
+| `field values` | Yes, when the field's semantic type is PII |
+
+Schema and metadata commands (`database metadata`, `table metadata`, `field get`, etc.) return field definitions, not data, so there is nothing to redact.
+
+### Limits and known gaps
+
+- Redaction relies on Metabase semantic types. A column holding PII without a semantic type (or with a custom type not in the list above) will not be redacted. Set semantic types in Metabase to close that gap.
+- Derived columns from joins, aggregations, or `CASE` expressions may lose the upstream semantic type. Native SQL enrichment matches by column name only — alias derived columns to match a known PII field name if you want them caught.
+- Free-form `type/Description` fields are not treated as PII; if you store names or emails in description-style columns, set their semantic type explicitly.
+- Redaction operates on result rows, not column headers. Column names like `email` remain visible — values are replaced.
+
+### Export behavior
+
+When redaction is enabled, the `--export` flag on `query sql` and `query filter` is **blocked** with this error:
+
+```
+export is not supported when PII redaction is enabled (use JSON or table format instead)
+```
+
+Raw export bytes (CSV/XLSX/JSON straight from Metabase) cannot be post-processed reliably for redaction, so the safe default is to refuse the operation. To export, explicitly opt out of redaction for that invocation:
+
+```bash
+MB_REDACT_PII=false mb-cli query sql --db 1 --sql "..." --export csv
+# or
+mb-cli query sql --redact-pii=false --db 1 --sql "..." --export csv
+```
+
+### Opt-out precedence
+
+The `--redact-pii` flag wins if set; otherwise `MB_REDACT_PII` is consulted; otherwise the default is `true`. Any value other than the literal string `false` is treated as enabled.
 
 ## License
 

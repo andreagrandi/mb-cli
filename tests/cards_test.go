@@ -94,24 +94,29 @@ func TestGetCard(t *testing.T) {
 
 func TestRunCard(t *testing.T) {
 	c, server := setupCardTestClient(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/card/1/query" {
-			t.Errorf("expected path '/api/card/1/query', got %s", r.URL.Path)
-		}
-		if r.Method != "POST" {
-			t.Errorf("expected POST, got %s", r.Method)
-		}
-
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{
-			"data": map[string]any{
-				"cols": []map[string]any{
-					{"name": "count", "display_name": "Count", "base_type": "type/Integer"},
+		switch r.URL.Path {
+		case "/api/card/1":
+			json.NewEncoder(w).Encode(map[string]any{
+				"id": 1, "name": "User Count", "database_id": 1, "display": "scalar", "query_type": "native", "archived": false,
+			})
+		case "/api/card/1/query":
+			if r.Method != "POST" {
+				t.Errorf("expected POST, got %s", r.Method)
+			}
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"cols": []map[string]any{
+						{"name": "count", "display_name": "Count", "base_type": "type/Integer"},
+					},
+					"rows": [][]any{
+						{42},
+					},
 				},
-				"rows": [][]any{
-					{42},
-				},
-			},
-		})
+			})
+		default:
+			t.Errorf("unexpected path %s", r.URL.Path)
+		}
 	})
 	defer server.Close()
 
