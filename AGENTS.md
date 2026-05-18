@@ -60,6 +60,63 @@ Environment variables (both required):
 - New additions go in [Unreleased] section
 - Don't bump version unless requested
 
+## Changelog Updates
+
+Every PR that introduces a user-visible change must add an entry under the
+`## [Unreleased]` section of `CHANGELOG.md` before it is opened for review.
+This is the same workflow LogBasset follows and the entry is what becomes the
+public release note.
+
+### When a changelog entry is required
+
+Add an entry whenever a change affects what users observe or depend on:
+
+- New, removed, or renamed commands, subcommands, flags, or environment
+  variables
+- Changes to command output (format, schema, default format, sort order,
+  truncation)
+- Changes to default behavior (e.g. PII redaction defaults, exit codes,
+  validation, error messages users may script against)
+- Bug fixes that change observable behavior
+- Packaging and install changes (Homebrew formula, `go install` path,
+  release artifacts, supported Go versions for distributed binaries)
+- Security or privacy behavior (redaction, logging of sensitive values,
+  authentication handling)
+- Documentation changes that describe a new capability shipped in the same PR
+  (the entry covers the capability, not the docs)
+
+### When an entry is NOT required
+
+Skip the changelog only for changes invisible to users:
+
+- Internal refactors with no behavior change
+- Test-only changes
+- Pure CI / tooling tweaks that do not affect built artifacts
+- Repo housekeeping (README typos, comments, formatting)
+- Dependency bumps that do not change behavior (Dependabot PRs are exempt by
+  default; if a bump changes behavior, add an entry manually)
+
+If you are unsure, add an entry — over-documenting is cheaper than a missing
+release note.
+
+### How to write the entry
+
+- Add a single bullet under `## [Unreleased]` at the top of `CHANGELOG.md`
+- One line, present tense, user-facing wording ("Add `query filter`
+  command", "Redact PII in native SQL results", "Fix Homebrew install on
+  macOS")
+- Reference the issue or PR number in parentheses when it adds context
+  (e.g. `(#20)`); do not include personal information
+- Do not bump the version or move entries out of `[Unreleased]` — that
+  happens during the release process
+
+### Opting out
+
+The PR template has a "Changelog updated" checkbox. If a PR genuinely needs
+no entry, tick the "No changelog entry needed" box and briefly say why. The
+`changelog` CI check also honours the `no-changelog` label for the same
+purpose.
+
 ## Release Process
 
 When asked to create a new release, follow this exact sequence:
