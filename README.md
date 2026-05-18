@@ -20,7 +20,7 @@ Download the latest release from the [releases page](https://github.com/andreagr
 ### Go install
 
 ```bash
-go install github.com/andreagrandi/mb-cli/cmd/mb@latest
+go install github.com/andreagrandi/mb-cli/cmd/mb-cli@latest
 ```
 
 ## Configuration

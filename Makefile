@@ -2,7 +2,7 @@
 
 BINARY_NAME := mb-cli
 BUILD_DIR := bin
-MAIN_PKG := ./cmd/mb
+MAIN_PKG := ./cmd/mb-cli
 MODULE := github.com/andreagrandi/mb-cli
 
 all: build

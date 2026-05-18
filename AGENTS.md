@@ -16,7 +16,7 @@ Do not start work from an old feature branch unless the user explicitly asks to 
 mb-cli follows the standard Go project layout:
 ```
 mb-cli/
-├── cmd/mb/main.go         # Application entry point
+├── cmd/mb-cli/main.go     # Application entry point
 ├── internal/
 │   ├── cli/               # CLI command implementations (Cobra)
 │   ├── client/            # Metabase API client
@@ -29,7 +29,7 @@ mb-cli/
 
 ## Build/Test Commands
 
-- `make build` - Build binary to bin/mb
+- `make build` - Build binary to bin/mb-cli
 - `make test` - Run all tests
 - `make test-verbose` - Run tests with verbose output
 - `make fmt` - Format code with gofmt
