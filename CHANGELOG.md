@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Document changelog update workflow in `AGENTS.md` and add a pull request template prompting contributors to update `CHANGELOG.md` for user-visible changes (#20)
+
 ## [0.2.0] - 2026-03-12
 
 - Add dashboard inspection commands for listing dashboards, viewing tabs and dashcards, and summarizing dashboard dependencies
