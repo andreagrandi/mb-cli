@@ -8,7 +8,7 @@ before:
     - go generate ./...
 
 builds:
-  - main: ./cmd/mb/main.go
+  - main: ./cmd/mb-cli/main.go
     binary: mb-cli
     env:
       - CGO_ENABLED=0

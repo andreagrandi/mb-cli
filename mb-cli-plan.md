@@ -62,7 +62,7 @@ All endpoints used by this CLI. Despite some being POST, they are all **read-onl
 
 ```
 mb-cli/
-├── cmd/mb/main.go                      # Entry point
+├── cmd/mb-cli/main.go                      # Entry point
 ├── internal/
 │   ├── cli/                            # Cobra commands
 │   │   ├── root.go                     # Root command, global flags
@@ -139,7 +139,7 @@ Set up Go module, entry point, config loading, root CLI, and version command.
 
 **Files to create:**
 - `go.mod` — module `github.com/andreagrandi/mb-cli`, Go 1.25
-- `cmd/mb/main.go` — calls `cli.Execute()` (pattern from sentire `cmd/sentire/main.go`)
+- `cmd/mb-cli/main.go` — calls `cli.Execute()` (pattern from sentire `cmd/sentire/main.go`)
 - `internal/version/version.go` — `var Version = "dev"` (injected via ldflags at build)
 - `internal/config/config.go` — `LoadConfig()` reads `MB_HOST` and `MB_API_KEY` from env vars; returns error if either is missing (pattern from sentire `internal/config/config.go`)
 - `internal/cli/root.go` — Cobra root command with persistent flags: `--format` (json/table, default json), `--verbose`
@@ -386,7 +386,7 @@ Configure multi-platform release builds and homebrew tap.
 - `.goreleaser.yaml` (modeled on logbasset `.goreleaser.yaml`):
   - Project name: `mb-cli`
   - Binary name: `mb-cli`
-  - Entry: `./cmd/mb/main.go`
+  - Entry: `./cmd/mb-cli/main.go`
   - CGO_ENABLED=0
   - Platforms: linux (amd64/arm64), darwin (amd64/arm64), windows (amd64, no arm64)
   - ldflags: `-s -w -X github.com/andreagrandi/mb-cli/internal/version.Version={{.Version}}`
@@ -500,7 +500,7 @@ type commandSchema struct {
 
 **Files to modify:**
 - `internal/cli/root.go` — add `--error-format` flag, wire it into error handling
-- `cmd/mb/main.go` — structured error handler that checks format
+- `cmd/mb-cli/main.go` — structured error handler that checks format
 
 **Tests:** `tests/error_format_test.go` — verify JSON error output on stderr for config error, API error
 
@@ -725,6 +725,6 @@ mb-cli version                                    # Show version
 | `context` embedded doc (go:embed) | logbasset PR #33 | `internal/cli/context.go` + `context_embed.md` |
 | `schema` JSON introspection | logbasset PR #33 | `internal/cli/schema.go` |
 | TTY auto-detection | logbasset PR #33 | `internal/cli/tty.go` |
-| `--error-format json` on stderr | logbasset PR #33 | `internal/cli/root.go`, `cmd/mb/main.go` |
+| `--error-format json` on stderr | logbasset PR #33 | `internal/cli/root.go`, `cmd/mb-cli/main.go` |
 | Input hardening (control chars) | logbasset PR #33 | `internal/validation/validation.go` |
 | `--fields` for context window savings | logbasset PR #33 | `internal/cli/query.go`, `internal/formatter/json.go` |

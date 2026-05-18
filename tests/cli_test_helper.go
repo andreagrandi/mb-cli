@@ -10,7 +10,7 @@ import (
 func runMBCLI(t *testing.T, env map[string]string, args ...string) (string, string, error) {
 	t.Helper()
 
-	cmdArgs := append([]string{"run", "./cmd/mb"}, args...)
+	cmdArgs := append([]string{"run", "./cmd/mb-cli"}, args...)
 	cmd := exec.Command("go", cmdArgs...)
 	cmd.Dir = ".."
 
