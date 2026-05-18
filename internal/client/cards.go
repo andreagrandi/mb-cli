@@ -41,27 +41,23 @@ func (c *Client) GetCard(id int) (*Card, error) {
 
 // RunCard executes a saved question and returns the query result.
 func (c *Client) RunCard(id int) (*QueryResult, error) {
-	resp, err := c.Post(fmt.Sprintf("/api/card/%d/query", id), nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to run card %d: %w", id, err)
-	}
-
-	return c.decodeCardQueryResult(resp, 0)
+	return c.RunCardWithParams(id, nil)
 }
 
-// RunCardWithParams executes a saved question with parameter values.
+// RunCardWithParams executes a saved question, optionally with parameter values.
+// The card is always fetched so semantic types can be enriched for redaction,
+// keeping behavior consistent between parameterized and non-parameterized runs.
 func (c *Client) RunCardWithParams(id int, params map[string]string) (*QueryResult, error) {
-	if len(params) == 0 {
-		return c.RunCard(id)
-	}
-
 	card, err := c.GetCard(id)
 	if err != nil {
 		return nil, err
 	}
 
-	body := map[string]any{
-		"parameters": buildCardQueryParameters(card, params),
+	var body any
+	if len(params) > 0 {
+		body = map[string]any{
+			"parameters": buildCardQueryParameters(card, params),
+		}
 	}
 
 	resp, err := c.Post(fmt.Sprintf("/api/card/%d/query", id), body)

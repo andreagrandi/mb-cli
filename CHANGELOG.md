@@ -5,6 +5,8 @@
 - Add `MB_SESSION_TOKEN` as an alternative authentication method for users without admin access to mint an API key; mutually exclusive with `MB_API_KEY` (#9)
 - Document changelog update workflow in `AGENTS.md` and add a pull request template prompting contributors to update `CHANGELOG.md` for user-visible changes (#20)
 - Move main package to `cmd/mb-cli` so `go install github.com/andreagrandi/mb-cli/cmd/mb-cli@latest` produces an `mb-cli` binary that matches the documented command name (#10)
+- Expand PII redaction documentation with covered commands, semantic-type enrichment behavior, known gaps, and export opt-out instructions (#17)
+- Enrich semantic types on non-parameterized `card run` results so PII columns from native saved questions are redacted consistently with the parameterized path (#17)
 
 ## [0.2.0] - 2026-03-12
 
