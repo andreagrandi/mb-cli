@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Add `MB_SESSION_TOKEN` as an alternative authentication method for users without admin access to mint an API key; mutually exclusive with `MB_API_KEY` (#9)
 - Document changelog update workflow in `AGENTS.md` and add a pull request template prompting contributors to update `CHANGELOG.md` for user-visible changes (#20)
 
 ## [0.2.0] - 2026-03-12

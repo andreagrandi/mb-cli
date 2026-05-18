@@ -249,6 +249,86 @@ func TestDecodeJSON(t *testing.T) {
 	}
 }
 
+func newTestClientWithSessionToken(serverURL string) *client.Client {
+	cfg := &config.Config{
+		Host:         serverURL,
+		SessionToken: "test-session-token",
+	}
+	return client.NewClient(cfg)
+}
+
+func TestNewClient_WithSessionToken(t *testing.T) {
+	cfg := &config.Config{
+		Host:         "https://metabase.example.com",
+		SessionToken: "my-session-token",
+	}
+
+	c := client.NewClient(cfg)
+
+	if c.SessionToken != "my-session-token" {
+		t.Errorf("expected session token 'my-session-token', got '%s'", c.SessionToken)
+	}
+
+	if c.APIKey != "" {
+		t.Errorf("expected empty API key, got '%s'", c.APIKey)
+	}
+}
+
+func TestDo_SetsSessionTokenHeader(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionToken := r.Header.Get("X-Metabase-Session")
+		if sessionToken != "test-session-token" {
+			t.Errorf("expected X-Metabase-Session 'test-session-token', got '%s'", sessionToken)
+		}
+
+		if apiKey := r.Header.Get("x-api-key"); apiKey != "" {
+			t.Errorf("expected no x-api-key header when using session token, got '%s'", apiKey)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"ok": true}`))
+	}))
+	defer server.Close()
+
+	c := newTestClientWithSessionToken(server.URL)
+
+	req, err := http.NewRequest("GET", server.URL+"/test", nil)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode)
+	}
+}
+
+func TestDo_SessionTokenOmitsAPIKeyHeader(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Metabase-Session") == "" {
+			t.Error("expected X-Metabase-Session header to be set")
+		}
+		if r.Header.Get("x-api-key") != "" {
+			t.Errorf("x-api-key must not be sent when session token is used")
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{}`))
+	}))
+	defer server.Close()
+
+	c := newTestClientWithSessionToken(server.URL)
+	resp, err := c.Post("/api/dataset/", map[string]any{"query": "SELECT 1"})
+	if err != nil {
+		t.Fatalf("POST request failed: %v", err)
+	}
+	defer resp.Body.Close()
+}
+
 func TestVerboseMode(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

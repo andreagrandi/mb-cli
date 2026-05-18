@@ -6,8 +6,9 @@ import (
 )
 
 type Config struct {
-	Host   string
-	APIKey string
+	Host         string
+	APIKey       string
+	SessionToken string
 }
 
 func LoadConfig() (*Config, error) {
@@ -17,12 +18,19 @@ func LoadConfig() (*Config, error) {
 	}
 
 	apiKey := os.Getenv("MB_API_KEY")
-	if apiKey == "" {
-		return nil, fmt.Errorf("MB_API_KEY environment variable is required")
+	sessionToken := os.Getenv("MB_SESSION_TOKEN")
+
+	if apiKey == "" && sessionToken == "" {
+		return nil, fmt.Errorf("either MB_API_KEY or MB_SESSION_TOKEN environment variable is required")
+	}
+
+	if apiKey != "" && sessionToken != "" {
+		return nil, fmt.Errorf("MB_API_KEY and MB_SESSION_TOKEN are mutually exclusive, set only one")
 	}
 
 	return &Config{
-		Host:   host,
-		APIKey: apiKey,
+		Host:         host,
+		APIKey:       apiKey,
+		SessionToken: sessionToken,
 	}, nil
 }

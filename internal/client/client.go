@@ -23,11 +23,12 @@ type HTTPDoer interface {
 
 // Client represents the Metabase API client.
 type Client struct {
-	BaseURL    string
-	HTTPClient HTTPDoer
-	APIKey     string
-	Verbose    bool
-	RedactPII  bool
+	BaseURL      string
+	HTTPClient   HTTPDoer
+	APIKey       string
+	SessionToken string
+	Verbose      bool
+	RedactPII    bool
 }
 
 // NewClient creates a new Metabase API client from the provided config.
@@ -37,13 +38,18 @@ func NewClient(cfg *config.Config) *Client {
 		HTTPClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		APIKey: cfg.APIKey,
+		APIKey:       cfg.APIKey,
+		SessionToken: cfg.SessionToken,
 	}
 }
 
 // Do executes an HTTP request with authentication headers and error handling.
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
-	req.Header.Set("x-api-key", c.APIKey)
+	if c.SessionToken != "" {
+		req.Header.Set("X-Metabase-Session", c.SessionToken)
+	} else {
+		req.Header.Set("x-api-key", c.APIKey)
+	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", UserAgent)
 
