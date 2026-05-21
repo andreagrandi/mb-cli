@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -38,7 +39,7 @@ func TestListDatabases(t *testing.T) {
 	})
 	defer server.Close()
 
-	databases, err := c.ListDatabases(false)
+	databases, err := c.ListDatabases(context.Background(), false)
 	if err != nil {
 		t.Fatalf("ListDatabases failed: %v", err)
 	}
@@ -81,7 +82,7 @@ func TestListDatabasesWithTables(t *testing.T) {
 	})
 	defer server.Close()
 
-	databases, err := c.ListDatabases(true)
+	databases, err := c.ListDatabases(context.Background(), true)
 	if err != nil {
 		t.Fatalf("ListDatabases failed: %v", err)
 	}
@@ -110,7 +111,7 @@ func TestGetDatabase(t *testing.T) {
 	})
 	defer server.Close()
 
-	db, err := c.GetDatabase(1)
+	db, err := c.GetDatabase(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("GetDatabase failed: %v", err)
 	}
@@ -145,7 +146,7 @@ func TestGetDatabaseMetadata(t *testing.T) {
 	})
 	defer server.Close()
 
-	meta, err := c.GetDatabaseMetadata(1)
+	meta, err := c.GetDatabaseMetadata(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("GetDatabaseMetadata failed: %v", err)
 	}
@@ -184,7 +185,7 @@ func TestGetDatabaseFields(t *testing.T) {
 	})
 	defer server.Close()
 
-	fields, err := c.GetDatabaseFields(1)
+	fields, err := c.GetDatabaseFields(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("GetDatabaseFields failed: %v", err)
 	}
@@ -211,7 +212,7 @@ func TestListDatabaseSchemas(t *testing.T) {
 	})
 	defer server.Close()
 
-	schemas, err := c.ListDatabaseSchemas(1)
+	schemas, err := c.ListDatabaseSchemas(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("ListDatabaseSchemas failed: %v", err)
 	}
@@ -241,7 +242,7 @@ func TestGetDatabaseSchema(t *testing.T) {
 	})
 	defer server.Close()
 
-	tables, err := c.GetDatabaseSchema(1, "public")
+	tables, err := c.GetDatabaseSchema(context.Background(), 1, "public")
 	if err != nil {
 		t.Fatalf("GetDatabaseSchema failed: %v", err)
 	}
@@ -264,7 +265,7 @@ func TestGetDatabaseNotFound(t *testing.T) {
 	})
 	defer server.Close()
 
-	_, err := c.GetDatabase(999)
+	_, err := c.GetDatabase(context.Background(), 999)
 	if err == nil {
 		t.Fatal("expected error for 404 response")
 	}

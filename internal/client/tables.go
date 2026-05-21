@@ -1,12 +1,13 @@
 package client
 
 import (
+	"context"
 	"fmt"
 )
 
 // ListTables retrieves all tables.
-func (c *Client) ListTables() ([]Table, error) {
-	resp, err := c.Get("/api/table/", nil)
+func (c *Client) ListTables(ctx context.Context) ([]Table, error) {
+	resp, err := c.Get(ctx, "/api/table/", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -20,8 +21,8 @@ func (c *Client) ListTables() ([]Table, error) {
 }
 
 // GetTable retrieves a single table by ID.
-func (c *Client) GetTable(id int) (*Table, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/table/%d", id), nil)
+func (c *Client) GetTable(ctx context.Context, id int) (*Table, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/table/%d", id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -35,8 +36,8 @@ func (c *Client) GetTable(id int) (*Table, error) {
 }
 
 // GetTableMetadata retrieves table metadata with field details.
-func (c *Client) GetTableMetadata(id int) (*TableMetadata, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/table/%d/query_metadata", id), nil)
+func (c *Client) GetTableMetadata(ctx context.Context, id int) (*TableMetadata, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/table/%d/query_metadata", id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +51,8 @@ func (c *Client) GetTableMetadata(id int) (*TableMetadata, error) {
 }
 
 // GetTableFKs retrieves foreign key relationships for a table.
-func (c *Client) GetTableFKs(id int) ([]ForeignKey, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/table/%d/fks", id), nil)
+func (c *Client) GetTableFKs(ctx context.Context, id int) ([]ForeignKey, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/table/%d/fks", id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +66,8 @@ func (c *Client) GetTableFKs(id int) ([]ForeignKey, error) {
 }
 
 // GetTableData retrieves raw data for a table.
-func (c *Client) GetTableData(id int) (*QueryResult, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/table/%d/data", id), nil)
+func (c *Client) GetTableData(ctx context.Context, id int) (*QueryResult, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/table/%d/data", id), nil)
 	if err != nil {
 		return nil, err
 	}

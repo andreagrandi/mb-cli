@@ -51,6 +51,17 @@ func TestClassifyConfigError(t *testing.T) {
 			hasSuggestion: true,
 		},
 		{
+			name:          "request timeout",
+			errMsg:        "failed to list databases: request timed out: context deadline exceeded",
+			expectedType:  "TIMEOUT_ERROR",
+			hasSuggestion: true,
+		},
+		{
+			name:         "request canceled",
+			errMsg:       "request canceled: context canceled",
+			expectedType: "CANCELED_ERROR",
+		},
+		{
 			name:         "api 404",
 			errMsg:       "API request failed with status 404: Not Found",
 			expectedType: "API_ERROR",

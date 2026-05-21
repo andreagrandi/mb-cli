@@ -1,19 +1,20 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"io"
 )
 
 // RunNativeQuery executes a native SQL query against the specified database.
-func (c *Client) RunNativeQuery(databaseID int, sql string) (*QueryResult, error) {
+func (c *Client) RunNativeQuery(ctx context.Context, databaseID int, sql string) (*QueryResult, error) {
 	query := DatasetQuery{
 		Database: databaseID,
 		Type:     "native",
 		Native:   &NativeQuery{Query: sql},
 	}
 
-	resp, err := c.Post("/api/dataset/", query)
+	resp, err := c.Post(ctx, "/api/dataset/", query)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +25,7 @@ func (c *Client) RunNativeQuery(databaseID int, sql string) (*QueryResult, error
 	}
 
 	if c.RedactPII {
-		c.EnrichSemanticTypes(&result, databaseID)
+		c.EnrichSemanticTypes(ctx, &result, databaseID)
 		RedactQueryResult(&result)
 	}
 
@@ -32,7 +33,7 @@ func (c *Client) RunNativeQuery(databaseID int, sql string) (*QueryResult, error
 }
 
 // ExportNativeQuery executes a native SQL query and returns the result in the specified export format.
-func (c *Client) ExportNativeQuery(databaseID int, sql string, format string) ([]byte, error) {
+func (c *Client) ExportNativeQuery(ctx context.Context, databaseID int, sql string, format string) ([]byte, error) {
 	if c.RedactPII {
 		return nil, fmt.Errorf("export is not supported when PII redaction is enabled (use JSON or table format instead)")
 	}
@@ -43,11 +44,11 @@ func (c *Client) ExportNativeQuery(databaseID int, sql string, format string) ([
 		Native:   &NativeQuery{Query: sql},
 	}
 
-	return c.exportQuery(query, format)
+	return c.exportQuery(ctx, query, format)
 }
 
 // RunStructuredQuery executes an MBQL structured query with filters.
-func (c *Client) RunStructuredQuery(databaseID, tableID int, filters [][]any, limit int) (*QueryResult, error) {
+func (c *Client) RunStructuredQuery(ctx context.Context, databaseID, tableID int, filters [][]any, limit int) (*QueryResult, error) {
 	sq := &StructuredQuery{
 		SourceTable: tableID,
 	}
@@ -72,7 +73,7 @@ func (c *Client) RunStructuredQuery(databaseID, tableID int, filters [][]any, li
 		Query:    sq,
 	}
 
-	resp, err := c.Post("/api/dataset/", query)
+	resp, err := c.Post(ctx, "/api/dataset/", query)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +91,7 @@ func (c *Client) RunStructuredQuery(databaseID, tableID int, filters [][]any, li
 }
 
 // ExportStructuredQuery executes an MBQL structured query and returns the result in the specified export format.
-func (c *Client) ExportStructuredQuery(databaseID, tableID int, filters [][]any, limit int, format string) ([]byte, error) {
+func (c *Client) ExportStructuredQuery(ctx context.Context, databaseID, tableID int, filters [][]any, limit int, format string) ([]byte, error) {
 	if c.RedactPII {
 		return nil, fmt.Errorf("export is not supported when PII redaction is enabled (use JSON or table format instead)")
 	}
@@ -119,15 +120,15 @@ func (c *Client) ExportStructuredQuery(databaseID, tableID int, filters [][]any,
 		Query:    sq,
 	}
 
-	return c.exportQuery(query, format)
+	return c.exportQuery(ctx, query, format)
 }
 
-func (c *Client) exportQuery(query DatasetQuery, format string) ([]byte, error) {
+func (c *Client) exportQuery(ctx context.Context, query DatasetQuery, format string) ([]byte, error) {
 	body := map[string]any{
 		"query": query,
 	}
 
-	resp, err := c.Post(fmt.Sprintf("/api/dataset/%s", format), body)
+	resp, err := c.Post(ctx, fmt.Sprintf("/api/dataset/%s", format), body)
 	if err != nil {
 		return nil, err
 	}

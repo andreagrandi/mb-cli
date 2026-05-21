@@ -33,7 +33,10 @@ func runSearch(cmd *cobra.Command, args []string) error {
 	modelsFlag, _ := cmd.Flags().GetString("models")
 	models := client.ParseModels(modelsFlag)
 
-	results, err := c.Search(args[0], models)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	results, err := c.Search(ctx, args[0], models)
 	if err != nil {
 		return err
 	}

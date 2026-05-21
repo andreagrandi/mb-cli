@@ -1,5 +1,7 @@
 package client
 
+import "context"
+
 // RedactedValue is the replacement string for redacted PII values.
 const RedactedValue = "[REDACTED]"
 
@@ -51,7 +53,7 @@ func RedactQueryResult(result *QueryResult) {
 // EnrichSemanticTypes fills in missing semantic types on result columns by looking
 // up field metadata from the database. This is needed for native SQL queries where
 // Metabase does not return semantic types in the result columns.
-func (c *Client) EnrichSemanticTypes(result *QueryResult, databaseID int) {
+func (c *Client) EnrichSemanticTypes(ctx context.Context, result *QueryResult, databaseID int) {
 	needsEnrichment := false
 	for _, col := range result.Data.Columns {
 		if col.SemanticType == "" {
@@ -64,7 +66,7 @@ func (c *Client) EnrichSemanticTypes(result *QueryResult, databaseID int) {
 		return
 	}
 
-	fields, err := c.GetDatabaseFields(databaseID)
+	fields, err := c.GetDatabaseFields(ctx, databaseID)
 	if err != nil {
 		return
 	}

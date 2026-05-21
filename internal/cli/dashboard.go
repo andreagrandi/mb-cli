@@ -120,7 +120,10 @@ func runDashboardList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	dashboards, err := c.ListDashboards()
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	dashboards, err := c.ListDashboards(ctx)
 	if err != nil {
 		return err
 	}
@@ -149,7 +152,10 @@ func runDashboardGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	dashboard, err := c.GetDashboard(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	dashboard, err := c.GetDashboard(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -173,7 +179,10 @@ func runDashboardCards(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	dashboard, err := c.GetDashboard(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	dashboard, err := c.GetDashboard(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -248,7 +257,10 @@ func runDashboardRunCard(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	result, err := c.RunDashboardCard(dashboardID, dashcardID, cardID, params)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	result, err := c.RunDashboardCard(ctx, dashboardID, dashcardID, cardID, params)
 	if err != nil {
 		return wrapParameterizedRunError(err)
 	}
@@ -267,7 +279,10 @@ func runDashboardParamLookup(cmd *cobra.Command, dashboardArg string, requestedK
 		return err
 	}
 
-	dashboard, err := c.GetDashboard(dashboardID)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	dashboard, err := c.GetDashboard(ctx, dashboardID)
 	if err != nil {
 		return err
 	}
@@ -276,9 +291,9 @@ func runDashboardParamLookup(cmd *cobra.Command, dashboardArg string, requestedK
 
 	var values *client.ParameterValues
 	if search {
-		values, err = c.SearchDashboardParamValues(dashboardID, resolvedKey, query)
+		values, err = c.SearchDashboardParamValues(ctx, dashboardID, resolvedKey, query)
 	} else {
-		values, err = c.GetDashboardParamValues(dashboardID, resolvedKey)
+		values, err = c.GetDashboardParamValues(ctx, dashboardID, resolvedKey)
 	}
 	if err != nil {
 		return err

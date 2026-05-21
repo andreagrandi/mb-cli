@@ -1,13 +1,14 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 )
 
 // ListDashboards retrieves all dashboards.
-func (c *Client) ListDashboards() ([]Dashboard, error) {
-	resp, err := c.Get("/api/dashboard/", nil)
+func (c *Client) ListDashboards(ctx context.Context) ([]Dashboard, error) {
+	resp, err := c.Get(ctx, "/api/dashboard/", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list dashboards: %w", err)
 	}
@@ -21,8 +22,8 @@ func (c *Client) ListDashboards() ([]Dashboard, error) {
 }
 
 // GetDashboard retrieves a single dashboard by ID.
-func (c *Client) GetDashboard(id int) (*Dashboard, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/dashboard/%d", id), nil)
+func (c *Client) GetDashboard(ctx context.Context, id int) (*Dashboard, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/dashboard/%d", id), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get dashboard %d: %w", id, err)
 	}
@@ -36,8 +37,8 @@ func (c *Client) GetDashboard(id int) (*Dashboard, error) {
 }
 
 // GetDashboardParamValues retrieves valid values for a dashboard parameter.
-func (c *Client) GetDashboardParamValues(dashboardID int, paramKey string) (*ParameterValues, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/dashboard/%d/params/%s/values", dashboardID, url.PathEscape(paramKey)), nil)
+func (c *Client) GetDashboardParamValues(ctx context.Context, dashboardID int, paramKey string) (*ParameterValues, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/dashboard/%d/params/%s/values", dashboardID, url.PathEscape(paramKey)), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get values for dashboard %d parameter %s: %w", dashboardID, paramKey, err)
 	}
@@ -51,8 +52,8 @@ func (c *Client) GetDashboardParamValues(dashboardID int, paramKey string) (*Par
 }
 
 // SearchDashboardParamValues searches dashboard parameter values.
-func (c *Client) SearchDashboardParamValues(dashboardID int, paramKey string, query string) (*ParameterValues, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/dashboard/%d/params/%s/search/%s", dashboardID, url.PathEscape(paramKey), url.PathEscape(query)), nil)
+func (c *Client) SearchDashboardParamValues(ctx context.Context, dashboardID int, paramKey string, query string) (*ParameterValues, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/dashboard/%d/params/%s/search/%s", dashboardID, url.PathEscape(paramKey), url.PathEscape(query)), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search values for dashboard %d parameter %s: %w", dashboardID, paramKey, err)
 	}
@@ -66,12 +67,12 @@ func (c *Client) SearchDashboardParamValues(dashboardID int, paramKey string, qu
 }
 
 // RunDashboardCard executes a dashboard card with parameter values.
-func (c *Client) RunDashboardCard(dashboardID, dashcardID, cardID int, params map[string]string) (*QueryResult, error) {
-	dashboard, err := c.GetDashboard(dashboardID)
+func (c *Client) RunDashboardCard(ctx context.Context, dashboardID, dashcardID, cardID int, params map[string]string) (*QueryResult, error) {
+	dashboard, err := c.GetDashboard(ctx, dashboardID)
 	if err != nil {
 		return nil, err
 	}
-	card, err := c.GetCard(cardID)
+	card, err := c.GetCard(ctx, cardID)
 	if err != nil {
 		return nil, err
 	}
@@ -80,10 +81,10 @@ func (c *Client) RunDashboardCard(dashboardID, dashcardID, cardID int, params ma
 		"parameters": buildDashboardQueryParameters(dashboard, params),
 	}
 
-	resp, err := c.Post(fmt.Sprintf("/api/dashboard/%d/dashcard/%d/card/%d/query", dashboardID, dashcardID, cardID), body)
+	resp, err := c.Post(ctx, fmt.Sprintf("/api/dashboard/%d/dashcard/%d/card/%d/query", dashboardID, dashcardID, cardID), body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run dashboard %d card %d via dashcard %d: %w", dashboardID, cardID, dashcardID, err)
 	}
 
-	return c.decodeCardQueryResult(resp, card.DatabaseID)
+	return c.decodeCardQueryResult(ctx, resp, card.DatabaseID)
 }

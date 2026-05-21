@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -37,7 +38,7 @@ func TestListTables(t *testing.T) {
 	})
 	defer server.Close()
 
-	tables, err := c.ListTables()
+	tables, err := c.ListTables(context.Background())
 	if err != nil {
 		t.Fatalf("ListTables failed: %v", err)
 	}
@@ -76,7 +77,7 @@ func TestGetTable(t *testing.T) {
 	})
 	defer server.Close()
 
-	table, err := c.GetTable(10)
+	table, err := c.GetTable(context.Background(), 10)
 	if err != nil {
 		t.Fatalf("GetTable failed: %v", err)
 	}
@@ -110,7 +111,7 @@ func TestGetTableMetadata(t *testing.T) {
 	})
 	defer server.Close()
 
-	meta, err := c.GetTableMetadata(10)
+	meta, err := c.GetTableMetadata(context.Background(), 10)
 	if err != nil {
 		t.Fatalf("GetTableMetadata failed: %v", err)
 	}
@@ -166,7 +167,7 @@ func TestGetTableFKs(t *testing.T) {
 	})
 	defer server.Close()
 
-	fks, err := c.GetTableFKs(11)
+	fks, err := c.GetTableFKs(context.Background(), 11)
 	if err != nil {
 		t.Fatalf("GetTableFKs failed: %v", err)
 	}
@@ -214,7 +215,7 @@ func TestGetTableData(t *testing.T) {
 	})
 	defer server.Close()
 
-	result, err := c.GetTableData(10)
+	result, err := c.GetTableData(context.Background(), 10)
 	if err != nil {
 		t.Fatalf("GetTableData failed: %v", err)
 	}
@@ -241,7 +242,7 @@ func TestGetTableFKsEmpty(t *testing.T) {
 	})
 	defer server.Close()
 
-	fks, err := c.GetTableFKs(10)
+	fks, err := c.GetTableFKs(context.Background(), 10)
 	if err != nil {
 		t.Fatalf("GetTableFKs failed: %v", err)
 	}
@@ -258,7 +259,7 @@ func TestGetTableNotFound(t *testing.T) {
 	})
 	defer server.Close()
 
-	_, err := c.GetTable(999)
+	_, err := c.GetTable(context.Background(), 999)
 	if err == nil {
 		t.Fatal("expected error for 404 response")
 	}

@@ -1,19 +1,20 @@
 package client
 
 import (
+	"context"
 	"net/url"
 	"strings"
 )
 
 // Search searches across all Metabase items.
-func (c *Client) Search(query string, models []string) ([]SearchResult, error) {
+func (c *Client) Search(ctx context.Context, query string, models []string) ([]SearchResult, error) {
 	params := url.Values{}
 	params.Set("q", query)
 	for _, m := range models {
 		params.Add("models", m)
 	}
 
-	resp, err := c.Get("/api/search/", params)
+	resp, err := c.Get(ctx, "/api/search/", params)
 	if err != nil {
 		return nil, err
 	}

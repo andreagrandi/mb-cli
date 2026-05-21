@@ -50,6 +50,7 @@ Set both environment variables (required):
 | `--verbose`, `-v` | bool | false | Show request details on stderr |
 | `--error-format` | string | `text` | Error output format: `text` or `json` |
 | `--redact-pii` | bool | `true` | Redact PII values in query results |
+| `--timeout` | duration | `30s` | Timeout for a command's API requests (`0` disables) |
 
 ## Command-Specific Flags
 

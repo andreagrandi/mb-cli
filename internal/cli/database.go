@@ -101,7 +101,10 @@ func runDatabaseList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	databases, err := c.ListDatabases(false)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	databases, err := c.ListDatabases(ctx, false)
 	if err != nil {
 		return err
 	}
@@ -120,7 +123,10 @@ func runDatabaseGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	db, err := c.GetDatabase(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	db, err := c.GetDatabase(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -139,7 +145,10 @@ func runDatabaseMetadata(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	meta, err := c.GetDatabaseMetadata(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	meta, err := c.GetDatabaseMetadata(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -158,7 +167,10 @@ func runDatabaseFields(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fields, err := c.GetDatabaseFields(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	fields, err := c.GetDatabaseFields(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -177,7 +189,10 @@ func runDatabaseSchemas(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	schemas, err := c.ListDatabaseSchemas(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	schemas, err := c.ListDatabaseSchemas(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -197,7 +212,10 @@ func runDatabaseSchema(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	tables, err := c.GetDatabaseSchema(id, schema)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	tables, err := c.GetDatabaseSchema(ctx, id, schema)
 	if err != nil {
 		return err
 	}
