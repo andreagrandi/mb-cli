@@ -202,6 +202,13 @@ mb-cli search "revenue" --models table,card
 mb-cli version
 ```
 
+## Recipes
+
+[docs/RECIPES.md](docs/RECIPES.md) collects end-to-end recipes for common
+Metabase exploration tasks — schema discovery, saved-question inspection,
+dashboard analysis, parameterized card and dashboard runs, and PII-safe
+querying. Each recipe is a worked sequence of commands with sample output.
+
 ## Agent integration
 
 mb-cli is designed to be used by AI coding agents. When piped or used in scripts, output defaults to JSON for easy parsing.
