@@ -22,12 +22,65 @@ func TestContextContent(t *testing.T) {
 		"## Flags That Do NOT Exist",
 		"## Database Name Resolution",
 		"## Output Formats",
+		"## Agent Workflows",
+		"## Safe Querying",
+		"## PII Redaction",
 		"## Examples",
 	}
 
 	for _, section := range requiredSections {
 		if !strings.Contains(content, section) {
 			t.Errorf("context content missing section: %s", section)
+		}
+	}
+}
+
+func TestContextContentContainsAgentWorkflows(t *testing.T) {
+	content := cli.ContextContent()
+
+	workflows := []string{
+		"### Explore a database schema",
+		"### Inspect a dashboard",
+		"### Explore a saved question (card)",
+		"### Answer an ad-hoc data question",
+	}
+
+	for _, workflow := range workflows {
+		if !strings.Contains(content, workflow) {
+			t.Errorf("context content missing workflow: %s", workflow)
+		}
+	}
+}
+
+func TestContextContentContainsSafeQueryingGuidance(t *testing.T) {
+	content := cli.ContextContent()
+
+	markers := []string{
+		"SELECT only",
+		"Always bound result size",
+		"Prefer `query filter` over hand-written SQL",
+	}
+
+	for _, marker := range markers {
+		if !strings.Contains(content, marker) {
+			t.Errorf("context content missing safe querying marker: %s", marker)
+		}
+	}
+}
+
+func TestContextContentContainsPIIRedactionGuidance(t *testing.T) {
+	content := cli.ContextContent()
+
+	markers := []string{
+		"PII redaction is **enabled by default**",
+		"Do NOT disable PII redaction",
+		"--redact-pii=false",
+		"[REDACTED]",
+	}
+
+	for _, marker := range markers {
+		if !strings.Contains(content, marker) {
+			t.Errorf("context content missing PII redaction marker: %s", marker)
 		}
 	}
 }
