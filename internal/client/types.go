@@ -115,6 +115,7 @@ type TemplateTag struct {
 	Type        string `json:"type,omitempty"`
 	WidgetType  string `json:"widget-type,omitempty"`
 	Required    bool   `json:"required,omitempty"`
+	Default     any    `json:"default,omitempty"`
 }
 
 // StructuredQuery represents an MBQL structured query.
@@ -138,6 +139,18 @@ type Card struct {
 	DatasetQuery          *DatasetQuery  `json:"dataset_query,omitempty"`
 	ResultMetadata        []Field        `json:"result_metadata,omitempty"`
 	VisualizationSettings map[string]any `json:"visualization_settings,omitempty"`
+}
+
+// CardParameter describes a parameter a saved question accepts. It is derived
+// from a native query template tag and names the value passed to
+// `card run --param <name>=<value>`.
+type CardParameter struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name,omitempty"`
+	Type        string `json:"type,omitempty"`
+	WidgetType  string `json:"widget_type,omitempty"`
+	Required    bool   `json:"required"`
+	Default     any    `json:"default,omitempty"`
 }
 
 // Dashboard represents a Metabase dashboard.

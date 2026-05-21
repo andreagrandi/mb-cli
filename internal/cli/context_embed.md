@@ -30,12 +30,14 @@ Set both environment variables (required):
 | `query filter` | Run a structured query with field filters | none | `--db`, `--table`, `--where` |
 | `card list` | List saved questions | none | none |
 | `card get <id>` | Get card details | id (positional) | none |
+| `card params <id>` | List the parameters a saved question accepts | id (positional) | none |
 | `card run <id>` | Execute a saved question | id (positional) | none |
 | `dashboard list` | List dashboards | none | none |
 | `dashboard get <id>` | Get dashboard details | id (positional) | none |
 | `dashboard cards <id>` | List cards used by a dashboard | id (positional) | none |
 | `dashboard analyze <id>` | Summarize dashboard dependencies | id (positional) | none |
 | `dashboard run-card <dashboard-id> <dashcard-id> <card-id>` | Execute a dashboard card | dashboard-id, dashcard-id, card-id (positional) | none |
+| `dashboard params list <dashboard-id>` | List a dashboard's parameters and the cards they filter | dashboard-id (positional) | none |
 | `dashboard params values <dashboard-id> <param-key>` | List valid dashboard parameter values | dashboard-id, param-key (positional) | none |
 | `dashboard params search <dashboard-id> <param-key> <query>` | Search dashboard parameter values | dashboard-id, param-key, query (positional) | none |
 | `collection list` | List collections | none | none |
@@ -148,6 +150,22 @@ Query result commands (`query sql`, `query filter`, `card run`, `table data`) fo
 
 Dashboard inspection commands default to concise summaries in table mode. Use `--format json` for full raw dashboard or analysis payloads.
 
+## Parameterized Cards and Dashboards
+
+Some saved questions and dashboard cards take parameters. Discover them before
+running, instead of guessing parameter names or values:
+
+- `card params <id>` lists the parameters a saved question accepts. Pass each
+  listed `name` to `card run` as `--param <name>=<value>`.
+- `dashboard params list <dashboard-id>` lists a dashboard's parameters and how
+  many cards each one filters.
+- `dashboard params values <dashboard-id> <param-key>` lists the valid values
+  for a parameter; `dashboard params search` filters those values by a query.
+
+When a parameterized run fails because a parameter key or value is invalid, the
+error's suggestion names the exact discovery command to run next (for example,
+`mb-cli card params 5` or `mb-cli dashboard params list 298`).
+
 ## Structured Error Output
 
 Use `--error-format json` to get machine-readable errors on stderr:
@@ -213,11 +231,19 @@ mb-cli query filter --db 1 --table products --where "id=prod_1234" --export csv
 mb-cli card list
 mb-cli card run 5
 
+# Discover a card's parameters before running it, then pass them
+mb-cli card params 5
+mb-cli card run 5 --param timeframe_days=14
+
 # Inspect dashboard structure and dependencies
 mb-cli dashboard get 298
 mb-cli dashboard cards 298
-mb-cli dashboard params values 298 merchant_name
 mb-cli dashboard analyze 298
+
+# Discover dashboard parameters, inspect their values, then run a card
+mb-cli dashboard params list 298
+mb-cli dashboard params values 298 merchant_name
+mb-cli dashboard run-card 298 1234 50 --param merchant_name=acme
 
 # Browse collections and discover their contents
 mb-cli collection list

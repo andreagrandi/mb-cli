@@ -112,7 +112,10 @@ func classifyError(err error) (errorType, suggestion string) {
 
 	var paramErr *mberr.ParameterizedQueryError
 	if errors.As(err, &paramErr) {
-		return "API_ERROR", "Check parameter IDs with 'mb-cli dashboard get <id>' or 'mb-cli card get <id> --full'"
+		if paramErr.Inspect != "" {
+			return "API_ERROR", fmt.Sprintf("Run '%s' to list valid parameter names, types, and default values", paramErr.Inspect)
+		}
+		return "API_ERROR", "List valid parameters with 'mb-cli card params <id>' or 'mb-cli dashboard params list <id>'"
 	}
 
 	var resolutionErr *mberr.ResolutionError

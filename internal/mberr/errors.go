@@ -82,12 +82,17 @@ type ResolutionError struct {
 func (e *ResolutionError) Error() string { return e.Message }
 
 // ParameterizedQueryError indicates a parameterized query was rejected by the
-// API, typically because parameter keys or values were invalid.
+// API, typically because parameter keys or values were invalid. Inspect, when
+// set, names the exact command that lists valid parameters for the query.
 type ParameterizedQueryError struct {
-	Err error
+	Err     error
+	Inspect string
 }
 
 func (e *ParameterizedQueryError) Error() string {
+	if e.Inspect != "" {
+		return fmt.Sprintf("parameterized query failed: check parameter keys and values, then run '%s' to list valid parameters (%v)", e.Inspect, e.Err)
+	}
 	return fmt.Sprintf("parameterized query failed: check parameter keys and values (%v)", e.Err)
 }
 

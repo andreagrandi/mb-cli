@@ -2,9 +2,39 @@ package client
 
 import (
 	"encoding/json"
+	"sort"
 	"strconv"
 	"strings"
 )
+
+// CardParameters returns the parameters a saved question accepts, derived from
+// its native query template tags and sorted by name for stable output. Card
+// and snippet template tags are excluded because they reference other queries
+// rather than accepting a user-supplied value.
+func (c *Card) CardParameters() []CardParameter {
+	if c == nil || c.DatasetQuery == nil || c.DatasetQuery.Native == nil {
+		return []CardParameter{}
+	}
+
+	tags := c.DatasetQuery.Native.TemplateTags
+	params := make([]CardParameter, 0, len(tags))
+	for key, tag := range tags {
+		if tag.Type == "card" || tag.Type == "snippet" {
+			continue
+		}
+		params = append(params, CardParameter{
+			Name:        key,
+			DisplayName: tag.DisplayName,
+			Type:        tag.Type,
+			WidgetType:  tag.WidgetType,
+			Required:    tag.Required,
+			Default:     tag.Default,
+		})
+	}
+
+	sort.Slice(params, func(i, j int) bool { return params[i].Name < params[j].Name })
+	return params
+}
 
 func buildCardQueryParameters(card *Card, params map[string]string) []QueryParameter {
 	if len(params) == 0 {

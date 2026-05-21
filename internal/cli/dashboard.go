@@ -50,6 +50,13 @@ var dashboardParamsCmd = &cobra.Command{
 	Short: "Dashboard parameter commands",
 }
 
+var dashboardParamsListCmd = &cobra.Command{
+	Use:   "list <dashboard-id>",
+	Short: "List a dashboard's parameters and the cards they filter",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runDashboardParamsList,
+}
+
 var dashboardParamsValuesCmd = &cobra.Command{
 	Use:   "values <dashboard-id> <param-key>",
 	Short: "List valid values for a dashboard parameter",
@@ -98,6 +105,20 @@ type dashboardParamMappingRow struct {
 	Target     string `json:"target,omitempty"`
 }
 
+type dashboardParamsListResult struct {
+	DashboardID   int                     `json:"dashboard_id"`
+	DashboardName string                  `json:"dashboard_name"`
+	Parameters    []dashboardParamListRow `json:"parameters"`
+}
+
+type dashboardParamListRow struct {
+	ID          string                     `json:"id"`
+	Name        string                     `json:"name"`
+	Slug        string                     `json:"slug"`
+	Type        string                     `json:"type"`
+	MappedCards []dashboardParamMappingRow `json:"mapped_cards"`
+}
+
 func init() {
 	rootCmd.AddCommand(dashboardCmd)
 
@@ -107,6 +128,7 @@ func init() {
 	dashboardCmd.AddCommand(dashboardRunCardCmd)
 	dashboardCmd.AddCommand(dashboardParamsCmd)
 
+	dashboardParamsCmd.AddCommand(dashboardParamsListCmd)
 	dashboardParamsCmd.AddCommand(dashboardParamsValuesCmd)
 	dashboardParamsCmd.AddCommand(dashboardParamsSearchCmd)
 
@@ -225,6 +247,48 @@ func buildDashboardCardRows(dashboard *client.Dashboard) []dashboardCardRow {
 	return rows
 }
 
+func runDashboardParamsList(cmd *cobra.Command, args []string) error {
+	dashboardID, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	dashboard, err := c.GetDashboard(ctx, dashboardID)
+	if err != nil {
+		return err
+	}
+
+	format, _ := cmd.Flags().GetString("format")
+	if format == "json" {
+		rows := make([]dashboardParamListRow, 0, len(dashboard.Parameters))
+		for i := range dashboard.Parameters {
+			parameter := &dashboard.Parameters[i]
+			rows = append(rows, dashboardParamListRow{
+				ID:          parameter.ID,
+				Name:        parameter.Name,
+				Slug:        parameter.Slug,
+				Type:        parameter.Type,
+				MappedCards: buildDashboardParamMappingRows(dashboard, parameter),
+			})
+		}
+		return formatter.Output(cmd, dashboardParamsListResult{
+			DashboardID:   dashboard.ID,
+			DashboardName: dashboard.Name,
+			Parameters:    rows,
+		})
+	}
+
+	return formatter.FormatDashboardParametersListTable(dashboard, os.Stdout)
+}
+
 func runDashboardParamValues(cmd *cobra.Command, args []string) error {
 	return runDashboardParamLookup(cmd, args[0], args[1], "", false)
 }
@@ -262,7 +326,7 @@ func runDashboardRunCard(cmd *cobra.Command, args []string) error {
 
 	result, err := c.RunDashboardCard(ctx, dashboardID, dashcardID, cardID, params)
 	if err != nil {
-		return wrapParameterizedRunError(err)
+		return wrapParameterizedRunError(err, len(params) > 0, fmt.Sprintf("mb-cli dashboard params list %d", dashboardID))
 	}
 
 	return formatQueryResultOutput(cmd, result)
