@@ -78,6 +78,12 @@ func TestClassifyConfigError(t *testing.T) {
 			hasSuggestion: true,
 		},
 		{
+			name:          "parameterized query failure with inspect command",
+			err:           &mberr.ParameterizedQueryError{Err: &mberr.APIError{StatusCode: 400, Body: "bad request"}, Inspect: "mb-cli card params 5"},
+			expectedType:  "API_ERROR",
+			hasSuggestion: true,
+		},
+		{
 			name:          "request timeout",
 			err:           &mberr.TimeoutError{Err: context.DeadlineExceeded},
 			expectedType:  "TIMEOUT_ERROR",

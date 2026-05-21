@@ -40,6 +40,21 @@ var cardRunCmd = &cobra.Command{
 	RunE:  runCardRun,
 }
 
+var cardParamsCmd = &cobra.Command{
+	Use:   "params <id>",
+	Short: "List the parameters a saved question accepts",
+	Long:  "Lists the parameters a saved question accepts so they can be supplied to 'card run --param key=value'.",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runCardParams,
+}
+
+type cardParamsResult struct {
+	CardID     int                    `json:"card_id"`
+	CardName   string                 `json:"card_name"`
+	QueryType  string                 `json:"query_type,omitempty"`
+	Parameters []client.CardParameter `json:"parameters"`
+}
+
 type cardSummary struct {
 	ID           int    `json:"id"`
 	Name         string `json:"name"`
@@ -57,6 +72,7 @@ func init() {
 	cardCmd.AddCommand(cardListCmd)
 	cardCmd.AddCommand(cardGetCmd)
 	cardCmd.AddCommand(cardRunCmd)
+	cardCmd.AddCommand(cardParamsCmd)
 
 	cardGetCmd.Flags().Bool("full", false, "Include the full query definition and card metadata")
 	cardRunCmd.Flags().String("fields", "", "Comma-separated list of columns to include in output")
@@ -128,10 +144,42 @@ func runCardRun(cmd *cobra.Command, args []string) error {
 
 	result, err := c.RunCardWithParams(ctx, id, params)
 	if err != nil {
-		return wrapParameterizedRunError(err)
+		return wrapParameterizedRunError(err, len(params) > 0, fmt.Sprintf("mb-cli card params %d", id))
 	}
 
 	return formatQueryResultOutput(cmd, result)
+}
+
+func runCardParams(cmd *cobra.Command, args []string) error {
+	id, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	card, err := c.GetCard(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	format, _ := cmd.Flags().GetString("format")
+	if format == "json" {
+		return formatter.Output(cmd, cardParamsResult{
+			CardID:     card.ID,
+			CardName:   card.Name,
+			QueryType:  card.QueryType,
+			Parameters: card.CardParameters(),
+		})
+	}
+
+	return formatter.FormatCardParametersTable(card, os.Stdout)
 }
 
 func summarizeCard(card *client.Card) cardSummary {
@@ -181,15 +229,22 @@ func formatQueryResultOutput(cmd *cobra.Command, result *client.QueryResult) err
 	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
 }
 
-func wrapParameterizedRunError(err error) error {
+// wrapParameterizedRunError classifies a failed card or dashboard run. When the
+// caller supplied parameters, an API rejection is surfaced as a
+// ParameterizedQueryError carrying inspect, the exact command that lists the
+// valid parameters for the query. Metabase rejects invalid parameters with a
+// 500, so the supplied-parameters context, not the status code, drives this.
+func wrapParameterizedRunError(err error, hadParams bool, inspect string) error {
 	var apiErr *mberr.APIError
-	if errors.As(err, &apiErr) {
-		switch apiErr.StatusCode {
-		case http.StatusBadRequest:
-			return &mberr.ParameterizedQueryError{Err: err}
-		case http.StatusNotFound:
-			return fmt.Errorf("query target was not found (%w)", err)
-		}
+	if !errors.As(err, &apiErr) {
+		return err
+	}
+
+	if apiErr.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("query target was not found (%w)", err)
+	}
+	if hadParams {
+		return &mberr.ParameterizedQueryError{Err: err, Inspect: inspect}
 	}
 	return err
 }
