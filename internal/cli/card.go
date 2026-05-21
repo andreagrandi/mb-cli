@@ -1,13 +1,16 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/andreagrandi/mb-cli/internal/client"
 	"github.com/andreagrandi/mb-cli/internal/formatter"
+	"github.com/andreagrandi/mb-cli/internal/mberr"
 	"github.com/spf13/cobra"
 )
 
@@ -179,12 +182,14 @@ func formatQueryResultOutput(cmd *cobra.Command, result *client.QueryResult) err
 }
 
 func wrapParameterizedRunError(err error) error {
-	message := err.Error()
-	if strings.Contains(message, "API request failed with status 400") {
-		return fmt.Errorf("parameterized query failed: check parameter keys and values (%w)", err)
-	}
-	if strings.Contains(message, "API request failed with status 404") {
-		return fmt.Errorf("query target was not found (%w)", err)
+	var apiErr *mberr.APIError
+	if errors.As(err, &apiErr) {
+		switch apiErr.StatusCode {
+		case http.StatusBadRequest:
+			return &mberr.ParameterizedQueryError{Err: err}
+		case http.StatusNotFound:
+			return fmt.Errorf("query target was not found (%w)", err)
+		}
 	}
 	return err
 }
