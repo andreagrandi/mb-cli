@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Expand the `context` agent document with end-to-end workflows for schema, dashboard, and saved-question exploration plus an explicit safe-querying section (#15)
 - Add `card params` and `dashboard params list` commands to discover the parameters a saved question or dashboard accepts before running it; failed parameterized runs now point to the exact discovery command (#14)
 - Add `collection` commands (`list`, `get`, `items`) to browse collections and discover the cards, dashboards, and nested collections inside them, with `--models` filtering and `root` collection support (#13)
 - Classify `--error-format json` errors from typed errors instead of message substrings, making structured error output reliable when wording changes (#12)

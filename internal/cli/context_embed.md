@@ -150,6 +150,57 @@ Query result commands (`query sql`, `query filter`, `card run`, `table data`) fo
 
 Dashboard inspection commands default to concise summaries in table mode. Use `--format json` for full raw dashboard or analysis payloads.
 
+## Agent Workflows
+
+Recommended end-to-end sequences for common tasks. Each step feeds an ID or
+name into the next. Prefer these metadata-first paths over guessing table,
+column, or parameter names.
+
+### Explore a database schema
+
+1. `database list` - find the database ID.
+2. `database schemas <id>` - list schema names in that database.
+3. `database schema <id> <schema>` - list tables in one schema.
+4. `table metadata <id>` - inspect a table's columns, data types, and semantic
+   types. Semantic types drive PII redaction (see PII Redaction below).
+5. `table fks <id>` - follow foreign keys to related tables.
+6. `field summary <id>` and `field values <id>` - understand a column's value
+   distribution before filtering on it.
+
+### Inspect a dashboard
+
+1. `dashboard list` or `search "<name>" --models dashboard` - find the
+   dashboard ID.
+2. `dashboard analyze <id>` - summarize the databases, cards, and tables the
+   dashboard depends on.
+3. `dashboard cards <id>` - list the dashboard's cards with their dashcard IDs.
+4. `dashboard params list <id>` - see the parameters the dashboard exposes and
+   which cards they filter.
+5. `dashboard params values <id> <param-key>` - list valid parameter values
+   (`dashboard params search` filters long lists).
+6. `dashboard run-card <dashboard-id> <dashcard-id> <card-id> --param <key>=<value>` -
+   execute a specific card.
+
+### Explore a saved question (card)
+
+1. `card list` or `search "<name>" --models card` - find the card ID.
+2. `card get <id>` - inspect the card; add `--full` for the underlying
+   `dataset_query` and result metadata.
+3. `card params <id>` - list the parameters the card accepts.
+4. `card run <id> --param <name>=<value>` - execute the card.
+
+### Answer an ad-hoc data question
+
+1. Resolve the database with `database list`, or pass a name substring to
+   `--db` directly.
+2. Find the table with `search "<name>" --models table` or
+   `database schema <id> <schema>`.
+3. Inspect columns with `table metadata <id>`.
+4. Query the data:
+   - For simple equality filters, prefer `query filter` - no SQL, fewer
+     mistakes, and database/table names resolve automatically.
+   - For aggregations or joins, use `query sql` with an explicit `LIMIT`.
+
 ## Parameterized Cards and Dashboards
 
 Some saved questions and dashboard cards take parameters. Discover them before
@@ -174,6 +225,21 @@ Use `--error-format json` to get machine-readable errors on stderr:
 ```
 
 Error types: `CONFIG_ERROR`, `AUTH_ERROR`, `API_ERROR`, `RESOLUTION_ERROR`, `GENERAL_ERROR`.
+
+## Safe Querying
+
+mb-cli exposes only read operations - there are no create, update, or delete
+commands. Keep queries safe and cheap:
+
+- **SELECT only.** `query sql` forwards SQL to Metabase unchanged. Issue read
+  queries only; never `INSERT`, `UPDATE`, `DELETE`, or DDL statements.
+- **Always bound result size.** Add `--limit` (or a SQL `LIMIT` clause) so a
+  query cannot return an unbounded number of rows.
+- **Prefer `query filter` over hand-written SQL** for simple lookups: it needs
+  no SQL, resolves database and table names for you, and avoids syntax errors.
+- **Discover before running.** Inspect table metadata, card parameters, and
+  dashboard parameters (see Agent Workflows) instead of guessing names.
+- **Leave PII redaction enabled.** See PII Redaction below.
 
 ## PII Redaction
 
