@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Classify `--error-format json` errors from typed errors instead of message substrings, making structured error output reliable when wording changes (#12)
 - Add `--timeout` flag and propagate request contexts so commands abort cleanly on Ctrl+C, with clear timeout and cancellation errors (#11)
 - Add `MB_SESSION_TOKEN` as an alternative authentication method for users without admin access to mint an API key; mutually exclusive with `MB_API_KEY` (#9)
 - Document changelog update workflow in `AGENTS.md` and add a pull request template prompting contributors to update `CHANGELOG.md` for user-visible changes (#20)

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+
+	"github.com/andreagrandi/mb-cli/internal/mberr"
 )
 
 // ListCards retrieves all saved questions (cards).
@@ -29,7 +31,11 @@ func (c *Client) GetCard(ctx context.Context, id int) (*Card, error) {
 
 	resp, err := c.Get(ctx, fmt.Sprintf("/api/card/%d", id), params)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get card %d: %w", id, err)
+		return nil, &mberr.RequestError{
+			Resource: mberr.ResourceCard,
+			Op:       fmt.Sprintf("failed to get card %d", id),
+			Err:      err,
+		}
 	}
 
 	var card Card

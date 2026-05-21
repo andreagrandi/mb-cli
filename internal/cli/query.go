@@ -9,6 +9,7 @@ import (
 
 	"github.com/andreagrandi/mb-cli/internal/client"
 	"github.com/andreagrandi/mb-cli/internal/formatter"
+	"github.com/andreagrandi/mb-cli/internal/mberr"
 	"github.com/andreagrandi/mb-cli/internal/validation"
 	"github.com/spf13/cobra"
 )
@@ -237,7 +238,10 @@ func matchTableByName(tables []client.TableMetadata, name string) (int, error) {
 
 	switch len(matches) {
 	case 0:
-		return 0, fmt.Errorf("no table matching '%s' found", name)
+		return 0, &mberr.ResolutionError{
+			Kind:    mberr.ResourceTable,
+			Message: fmt.Sprintf("no table matching '%s' found", name),
+		}
 	case 1:
 		return matches[0].ID, nil
 	default:
@@ -245,7 +249,10 @@ func matchTableByName(tables []client.TableMetadata, name string) (int, error) {
 		for i, t := range matches {
 			names[i] = fmt.Sprintf("%s (id=%d)", t.Name, t.ID)
 		}
-		return 0, fmt.Errorf("ambiguous table name '%s', matches: %s. Use table ID instead", name, strings.Join(names, ", "))
+		return 0, &mberr.ResolutionError{
+			Kind:    mberr.ResourceTable,
+			Message: fmt.Sprintf("ambiguous table name '%s', matches: %s. Use table ID instead", name, strings.Join(names, ", ")),
+		}
 	}
 }
 
@@ -270,7 +277,10 @@ func resolveFieldID(fields []client.Field, name string) (int, error) {
 			return f.ID, nil
 		}
 	}
-	return 0, fmt.Errorf("no field matching '%s' found in table", name)
+	return 0, &mberr.ResolutionError{
+		Kind:    mberr.ResourceField,
+		Message: fmt.Sprintf("no field matching '%s' found in table", name),
+	}
 }
 
 func matchDatabaseByName(databases []client.Database, name string) (int, error) {
@@ -284,7 +294,10 @@ func matchDatabaseByName(databases []client.Database, name string) (int, error) 
 
 	switch len(matches) {
 	case 0:
-		return 0, fmt.Errorf("no database matching '%s' found", name)
+		return 0, &mberr.ResolutionError{
+			Kind:    mberr.ResourceDatabase,
+			Message: fmt.Sprintf("no database matching '%s' found", name),
+		}
 	case 1:
 		return matches[0].ID, nil
 	default:
@@ -292,6 +305,9 @@ func matchDatabaseByName(databases []client.Database, name string) (int, error) 
 		for i, db := range matches {
 			names[i] = fmt.Sprintf("%s (id=%d)", db.Name, db.ID)
 		}
-		return 0, fmt.Errorf("ambiguous database name '%s', matches: %s. Use database ID instead", name, strings.Join(names, ", "))
+		return 0, &mberr.ResolutionError{
+			Kind:    mberr.ResourceDatabase,
+			Message: fmt.Sprintf("ambiguous database name '%s', matches: %s. Use database ID instead", name, strings.Join(names, ", ")),
+		}
 	}
 }

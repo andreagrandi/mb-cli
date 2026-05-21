@@ -12,6 +12,7 @@ import (
 	"os"
 
 	"github.com/andreagrandi/mb-cli/internal/config"
+	"github.com/andreagrandi/mb-cli/internal/mberr"
 	"github.com/andreagrandi/mb-cli/internal/version"
 )
 
@@ -69,7 +70,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	if resp.StatusCode >= 400 {
 		defer resp.Body.Close()
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
+		return nil, &mberr.APIError{StatusCode: resp.StatusCode, Body: string(body)}
 	}
 
 	return resp, nil
@@ -80,9 +81,9 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 func requestError(ctx context.Context, err error) error {
 	switch {
 	case errors.Is(err, context.DeadlineExceeded), ctx.Err() == context.DeadlineExceeded:
-		return fmt.Errorf("request timed out: %w", err)
+		return &mberr.TimeoutError{Err: err}
 	case errors.Is(err, context.Canceled), ctx.Err() == context.Canceled:
-		return fmt.Errorf("request canceled: %w", err)
+		return &mberr.CanceledError{Err: err}
 	default:
 		return fmt.Errorf("http request failed: %w", err)
 	}

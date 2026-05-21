@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+
+	"github.com/andreagrandi/mb-cli/internal/mberr"
 )
 
 // ListDashboards retrieves all dashboards.
@@ -25,7 +27,11 @@ func (c *Client) ListDashboards(ctx context.Context) ([]Dashboard, error) {
 func (c *Client) GetDashboard(ctx context.Context, id int) (*Dashboard, error) {
 	resp, err := c.Get(ctx, fmt.Sprintf("/api/dashboard/%d", id), nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get dashboard %d: %w", id, err)
+		return nil, &mberr.RequestError{
+			Resource: mberr.ResourceDashboard,
+			Op:       fmt.Sprintf("failed to get dashboard %d", id),
+			Err:      err,
+		}
 	}
 
 	var dashboard Dashboard
@@ -40,7 +46,11 @@ func (c *Client) GetDashboard(ctx context.Context, id int) (*Dashboard, error) {
 func (c *Client) GetDashboardParamValues(ctx context.Context, dashboardID int, paramKey string) (*ParameterValues, error) {
 	resp, err := c.Get(ctx, fmt.Sprintf("/api/dashboard/%d/params/%s/values", dashboardID, url.PathEscape(paramKey)), nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get values for dashboard %d parameter %s: %w", dashboardID, paramKey, err)
+		return nil, &mberr.RequestError{
+			Resource: mberr.ResourceDashboardParameter,
+			Op:       fmt.Sprintf("failed to get values for dashboard %d parameter %s", dashboardID, paramKey),
+			Err:      err,
+		}
 	}
 
 	var values ParameterValues

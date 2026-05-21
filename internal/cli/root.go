@@ -3,13 +3,15 @@ package cli
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
+	"github.com/andreagrandi/mb-cli/internal/mberr"
 	"github.com/andreagrandi/mb-cli/internal/version"
 	"github.com/spf13/cobra"
 )
@@ -90,39 +92,74 @@ func ClassifyError(err error) (errorType, suggestion string) {
 	return classifyError(err)
 }
 
+// classifyError inspects the error's type (not its message text) to determine
+// the structured error type and an actionable suggestion.
 func classifyError(err error) (errorType, suggestion string) {
-	msg := err.Error()
-
-	switch {
-	case strings.Contains(msg, "MB_HOST") || strings.Contains(msg, "MB_API_KEY"):
+	var configErr *mberr.ConfigError
+	if errors.As(err, &configErr) {
 		return "CONFIG_ERROR", "Set MB_HOST and MB_API_KEY environment variables"
-	case strings.Contains(msg, "request timed out"):
+	}
+
+	var timeoutErr *mberr.TimeoutError
+	if errors.As(err, &timeoutErr) {
 		return "TIMEOUT_ERROR", "Increase --timeout or check connectivity to MB_HOST"
-	case strings.Contains(msg, "request canceled"):
+	}
+
+	var canceledErr *mberr.CanceledError
+	if errors.As(err, &canceledErr) {
 		return "CANCELED_ERROR", ""
-	case strings.Contains(msg, "parameterized query failed"):
+	}
+
+	var paramErr *mberr.ParameterizedQueryError
+	if errors.As(err, &paramErr) {
 		return "API_ERROR", "Check parameter IDs with 'mb-cli dashboard get <id>' or 'mb-cli card get <id> --full'"
-	case strings.Contains(msg, "API request failed with status 401"),
-		strings.Contains(msg, "API request failed with status 403"):
-		return "AUTH_ERROR", "Check that MB_API_KEY is valid and can access the requested resource"
-	case strings.Contains(msg, "failed to get dashboard") && strings.Contains(msg, "status 404"):
-		return "API_ERROR", "Check that the dashboard ID exists and is visible to this API key"
-	case strings.Contains(msg, "failed to get card") && strings.Contains(msg, "status 404"):
-		return "API_ERROR", "Check that the card ID exists and is visible to this API key"
-	case strings.Contains(msg, "failed to get values for dashboard") && strings.Contains(msg, "status 404"):
-		return "API_ERROR", "Check that the dashboard parameter ID exists for this dashboard"
-	case strings.Contains(msg, "API request failed with status"):
+	}
+
+	var resolutionErr *mberr.ResolutionError
+	if errors.As(err, &resolutionErr) {
+		return "RESOLUTION_ERROR", resolutionSuggestion(resolutionErr.Kind)
+	}
+
+	var apiErr *mberr.APIError
+	if errors.As(err, &apiErr) {
+		if apiErr.IsAuth() {
+			return "AUTH_ERROR", "Check that MB_API_KEY is valid and can access the requested resource"
+		}
+		var reqErr *mberr.RequestError
+		if apiErr.StatusCode == http.StatusNotFound && errors.As(err, &reqErr) {
+			return "API_ERROR", notFoundSuggestion(reqErr.Resource)
+		}
 		return "API_ERROR", ""
-	case strings.Contains(msg, "no database matching"),
-		strings.Contains(msg, "ambiguous database name"):
-		return "RESOLUTION_ERROR", "Use a database ID instead of a name"
-	case strings.Contains(msg, "no table matching"),
-		strings.Contains(msg, "ambiguous table name"):
-		return "RESOLUTION_ERROR", "Use a table ID instead of a name"
-	case strings.Contains(msg, "no field matching"):
-		return "RESOLUTION_ERROR", "Check field names with 'mb-cli table metadata <id>'"
+	}
+
+	return "GENERAL_ERROR", ""
+}
+
+// resolutionSuggestion returns advice for a name-to-ID resolution failure.
+func resolutionSuggestion(kind mberr.ResourceKind) string {
+	switch kind {
+	case mberr.ResourceDatabase:
+		return "Use a database ID instead of a name"
+	case mberr.ResourceTable:
+		return "Use a table ID instead of a name"
+	case mberr.ResourceField:
+		return "Check field names with 'mb-cli table metadata <id>'"
 	default:
-		return "GENERAL_ERROR", ""
+		return ""
+	}
+}
+
+// notFoundSuggestion returns advice for a 404 on a specific resource request.
+func notFoundSuggestion(kind mberr.ResourceKind) string {
+	switch kind {
+	case mberr.ResourceDashboard:
+		return "Check that the dashboard ID exists and is visible to this API key"
+	case mberr.ResourceCard:
+		return "Check that the card ID exists and is visible to this API key"
+	case mberr.ResourceDashboardParameter:
+		return "Check that the dashboard parameter ID exists for this dashboard"
+	default:
+		return ""
 	}
 }
 
