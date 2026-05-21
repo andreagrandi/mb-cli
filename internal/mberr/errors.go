@@ -16,6 +16,7 @@ const (
 	ResourceField              ResourceKind = "field"
 	ResourceDashboard          ResourceKind = "dashboard"
 	ResourceCard               ResourceKind = "card"
+	ResourceCollection         ResourceKind = "collection"
 	ResourceDashboardParameter ResourceKind = "dashboard parameter"
 )
 

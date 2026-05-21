@@ -254,3 +254,29 @@ type FieldValues struct {
 	FieldID int     `json:"field_id"`
 	Values  [][]any `json:"values"`
 }
+
+// Collection represents a Metabase collection. The ID is typically a number,
+// but the root collection is identified by the string "root".
+type Collection struct {
+	ID          any    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Slug        string `json:"slug,omitempty"`
+	Location    string `json:"location,omitempty"`
+	Archived    bool   `json:"archived"`
+}
+
+// CollectionItem represents an item contained in a collection, such as a card,
+// dashboard, or nested collection.
+type CollectionItem struct {
+	ID          int    `json:"id"`
+	Model       string `json:"model"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+}
+
+// CollectionItems represents the items returned for a collection.
+type CollectionItems struct {
+	Total int              `json:"total"`
+	Data  []CollectionItem `json:"data"`
+}
