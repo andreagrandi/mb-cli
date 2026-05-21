@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -70,7 +71,10 @@ func runQuerySQL(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	dbID, err := resolveDatabaseID(c, dbFlag)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	dbID, err := resolveDatabaseID(ctx, c, dbFlag)
 	if err != nil {
 		return err
 	}
@@ -80,7 +84,7 @@ func runQuerySQL(cmd *cobra.Command, args []string) error {
 	}
 
 	if export != "" {
-		data, err := c.ExportNativeQuery(dbID, sql, export)
+		data, err := c.ExportNativeQuery(ctx, dbID, sql, export)
 		if err != nil {
 			return err
 		}
@@ -88,7 +92,7 @@ func runQuerySQL(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	result, err := c.RunNativeQuery(dbID, sql)
+	result, err := c.RunNativeQuery(ctx, dbID, sql)
 	if err != nil {
 		return err
 	}
@@ -105,12 +109,12 @@ func runQuerySQL(cmd *cobra.Command, args []string) error {
 	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
 }
 
-func resolveDatabaseID(c *client.Client, dbFlag string) (int, error) {
+func resolveDatabaseID(ctx context.Context, c *client.Client, dbFlag string) (int, error) {
 	if id, err := strconv.Atoi(dbFlag); err == nil {
 		return id, nil
 	}
 
-	databases, err := c.ListDatabases(false)
+	databases, err := c.ListDatabases(ctx, false)
 	if err != nil {
 		return 0, fmt.Errorf("failed to list databases for name resolution: %w", err)
 	}
@@ -142,17 +146,20 @@ func runQueryFilter(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	dbID, err := resolveDatabaseID(c, dbFlag)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	dbID, err := resolveDatabaseID(ctx, c, dbFlag)
 	if err != nil {
 		return err
 	}
 
-	tableID, err := resolveTableID(c, dbID, tableFlag)
+	tableID, err := resolveTableID(ctx, c, dbID, tableFlag)
 	if err != nil {
 		return err
 	}
 
-	tableMeta, err := c.GetTableMetadata(tableID)
+	tableMeta, err := c.GetTableMetadata(ctx, tableID)
 	if err != nil {
 		return fmt.Errorf("failed to get table metadata: %w", err)
 	}
@@ -171,7 +178,7 @@ func runQueryFilter(cmd *cobra.Command, args []string) error {
 	}
 
 	if export != "" {
-		data, err := c.ExportStructuredQuery(dbID, tableID, filters, limit, export)
+		data, err := c.ExportStructuredQuery(ctx, dbID, tableID, filters, limit, export)
 		if err != nil {
 			return err
 		}
@@ -179,7 +186,7 @@ func runQueryFilter(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	result, err := c.RunStructuredQuery(dbID, tableID, filters, limit)
+	result, err := c.RunStructuredQuery(ctx, dbID, tableID, filters, limit)
 	if err != nil {
 		return err
 	}
@@ -196,12 +203,12 @@ func runQueryFilter(cmd *cobra.Command, args []string) error {
 	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
 }
 
-func resolveTableID(c *client.Client, dbID int, tableFlag string) (int, error) {
+func resolveTableID(ctx context.Context, c *client.Client, dbID int, tableFlag string) (int, error) {
 	if id, err := strconv.Atoi(tableFlag); err == nil {
 		return id, nil
 	}
 
-	meta, err := c.GetDatabaseMetadata(dbID)
+	meta, err := c.GetDatabaseMetadata(ctx, dbID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get database metadata for table resolution: %w", err)
 	}
@@ -210,8 +217,8 @@ func resolveTableID(c *client.Client, dbID int, tableFlag string) (int, error) {
 }
 
 // ResolveTableID is exported for testing.
-func ResolveTableID(c *client.Client, dbID int, tableFlag string) (int, error) {
-	return resolveTableID(c, dbID, tableFlag)
+func ResolveTableID(ctx context.Context, c *client.Client, dbID int, tableFlag string) (int, error) {
+	return resolveTableID(ctx, c, dbID, tableFlag)
 }
 
 // MatchTableByName finds a table by case-insensitive substring match. Exported for testing.

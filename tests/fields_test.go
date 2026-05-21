@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -42,7 +43,7 @@ func TestGetField(t *testing.T) {
 	})
 	defer server.Close()
 
-	field, err := c.GetField(100)
+	field, err := c.GetField(context.Background(), 100)
 	if err != nil {
 		t.Fatalf("GetField failed: %v", err)
 	}
@@ -88,7 +89,7 @@ func TestGetFieldSummary(t *testing.T) {
 	})
 	defer server.Close()
 
-	summary, err := c.GetFieldSummary(100)
+	summary, err := c.GetFieldSummary(context.Background(), 100)
 	if err != nil {
 		t.Fatalf("GetFieldSummary failed: %v", err)
 	}
@@ -118,7 +119,7 @@ func TestGetFieldValues(t *testing.T) {
 	})
 	defer server.Close()
 
-	values, err := c.GetFieldValues(101)
+	values, err := c.GetFieldValues(context.Background(), 101)
 	if err != nil {
 		t.Fatalf("GetFieldValues failed: %v", err)
 	}
@@ -141,7 +142,7 @@ func TestGetFieldValuesEmpty(t *testing.T) {
 	})
 	defer server.Close()
 
-	values, err := c.GetFieldValues(102)
+	values, err := c.GetFieldValues(context.Background(), 102)
 	if err != nil {
 		t.Fatalf("GetFieldValues failed: %v", err)
 	}
@@ -158,7 +159,7 @@ func TestGetFieldNotFound(t *testing.T) {
 	})
 	defer server.Close()
 
-	_, err := c.GetField(999)
+	_, err := c.GetField(context.Background(), 999)
 	if err == nil {
 		t.Fatal("expected error for 404 response")
 	}

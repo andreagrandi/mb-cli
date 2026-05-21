@@ -2,13 +2,14 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/andreagrandi/mb-cli/internal/config"
 	"github.com/andreagrandi/mb-cli/internal/version"
@@ -32,12 +33,11 @@ type Client struct {
 }
 
 // NewClient creates a new Metabase API client from the provided config.
+// Request timeouts are controlled by the context passed to each request.
 func NewClient(cfg *config.Config) *Client {
 	return &Client{
-		BaseURL: cfg.Host,
-		HTTPClient: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		BaseURL:      cfg.Host,
+		HTTPClient:   &http.Client{},
 		APIKey:       cfg.APIKey,
 		SessionToken: cfg.SessionToken,
 	}
@@ -59,7 +59,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("http request failed: %w", err)
+		return nil, requestError(req.Context(), err)
 	}
 
 	if c.Verbose {
@@ -75,14 +75,27 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	return resp, nil
 }
 
+// requestError converts a transport-level failure into a clearer message,
+// distinguishing request timeouts and cancellations from generic errors.
+func requestError(ctx context.Context, err error) error {
+	switch {
+	case errors.Is(err, context.DeadlineExceeded), ctx.Err() == context.DeadlineExceeded:
+		return fmt.Errorf("request timed out: %w", err)
+	case errors.Is(err, context.Canceled), ctx.Err() == context.Canceled:
+		return fmt.Errorf("request canceled: %w", err)
+	default:
+		return fmt.Errorf("http request failed: %w", err)
+	}
+}
+
 // Get performs a GET request to the given endpoint with optional query parameters.
-func (c *Client) Get(endpoint string, params url.Values) (*http.Response, error) {
+func (c *Client) Get(ctx context.Context, endpoint string, params url.Values) (*http.Response, error) {
 	fullURL := c.BaseURL + endpoint
 	if params != nil {
 		fullURL += "?" + params.Encode()
 	}
 
-	req, err := http.NewRequest("GET", fullURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fullURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -91,13 +104,13 @@ func (c *Client) Get(endpoint string, params url.Values) (*http.Response, error)
 }
 
 // Post performs a POST request to the given endpoint with a JSON body.
-func (c *Client) Post(endpoint string, body any) (*http.Response, error) {
+func (c *Client) Post(ctx context.Context, endpoint string, body any) (*http.Response, error) {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", c.BaseURL+endpoint, bytes.NewReader(jsonBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", c.BaseURL+endpoint, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}

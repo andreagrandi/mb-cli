@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -63,7 +64,7 @@ func TestRunNativeQuery(t *testing.T) {
 	})
 	defer server.Close()
 
-	result, err := c.RunNativeQuery(1, "SELECT 1")
+	result, err := c.RunNativeQuery(context.Background(), 1, "SELECT 1")
 	if err != nil {
 		t.Fatalf("RunNativeQuery failed: %v", err)
 	}
@@ -111,7 +112,7 @@ func TestExportNativeQuery(t *testing.T) {
 	})
 	defer server.Close()
 
-	data, err := c.ExportNativeQuery(1, "SELECT id, name FROM users", "csv")
+	data, err := c.ExportNativeQuery(context.Background(), 1, "SELECT id, name FROM users", "csv")
 	if err != nil {
 		t.Fatalf("ExportNativeQuery failed: %v", err)
 	}
@@ -129,7 +130,7 @@ func TestRunNativeQueryError(t *testing.T) {
 	})
 	defer server.Close()
 
-	_, err := c.RunNativeQuery(1, "INVALID SQL")
+	_, err := c.RunNativeQuery(context.Background(), 1, "INVALID SQL")
 	if err == nil {
 		t.Fatal("expected error for bad query")
 	}
@@ -246,7 +247,7 @@ func TestRunStructuredQuery(t *testing.T) {
 		{"=", []any{"field", 100, nil}, "prod_1234"},
 	}
 
-	result, err := c.RunStructuredQuery(1, 42, filters, 0)
+	result, err := c.RunStructuredQuery(context.Background(), 1, 42, filters, 0)
 	if err != nil {
 		t.Fatalf("RunStructuredQuery failed: %v", err)
 	}
@@ -290,7 +291,7 @@ func TestRunStructuredQueryMultipleFilters(t *testing.T) {
 		{"=", []any{"field", 101, nil}, "true"},
 	}
 
-	_, err := c.RunStructuredQuery(1, 42, filters, 0)
+	_, err := c.RunStructuredQuery(context.Background(), 1, 42, filters, 0)
 	if err != nil {
 		t.Fatalf("RunStructuredQuery failed: %v", err)
 	}
@@ -321,7 +322,7 @@ func TestRunStructuredQueryWithLimit(t *testing.T) {
 		{"=", []any{"field", 100, nil}, "pending"},
 	}
 
-	_, err := c.RunStructuredQuery(1, 42, filters, 10)
+	_, err := c.RunStructuredQuery(context.Background(), 1, 42, filters, 10)
 	if err != nil {
 		t.Fatalf("RunStructuredQuery failed: %v", err)
 	}

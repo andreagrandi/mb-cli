@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -36,7 +37,7 @@ func TestListDashboards(t *testing.T) {
 	})
 	defer server.Close()
 
-	dashboards, err := c.ListDashboards()
+	dashboards, err := c.ListDashboards(context.Background())
 	if err != nil {
 		t.Fatalf("ListDashboards failed: %v", err)
 	}
@@ -95,7 +96,7 @@ func TestGetDashboard(t *testing.T) {
 	})
 	defer server.Close()
 
-	dashboard, err := c.GetDashboard(1)
+	dashboard, err := c.GetDashboard(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("GetDashboard failed: %v", err)
 	}
@@ -124,7 +125,7 @@ func TestGetDashboardNotFound(t *testing.T) {
 	})
 	defer server.Close()
 
-	_, err := c.GetDashboard(999)
+	_, err := c.GetDashboard(context.Background(), 999)
 	if err == nil {
 		t.Fatal("expected error for missing dashboard")
 	}
@@ -155,7 +156,7 @@ func TestGetDashboardCards(t *testing.T) {
 	})
 	defer server.Close()
 
-	dashboard, err := c.GetDashboard(1)
+	dashboard, err := c.GetDashboard(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("GetDashboard failed: %v", err)
 	}
@@ -196,7 +197,7 @@ func TestParameterLookup(t *testing.T) {
 	})
 	defer server.Close()
 
-	values, err := c.GetDashboardParamValues(1, "param-merchant")
+	values, err := c.GetDashboardParamValues(context.Background(), 1, "param-merchant")
 	if err != nil {
 		t.Fatalf("GetDashboardParamValues failed: %v", err)
 	}
@@ -207,7 +208,7 @@ func TestParameterLookup(t *testing.T) {
 		t.Fatalf("unexpected first parameter value: %+v", values.Values[0])
 	}
 
-	searchValues, err := c.SearchDashboardParamValues(1, "param-merchant", "acme")
+	searchValues, err := c.SearchDashboardParamValues(context.Background(), 1, "param-merchant", "acme")
 	if err != nil {
 		t.Fatalf("SearchDashboardParamValues failed: %v", err)
 	}

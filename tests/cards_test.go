@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -37,7 +38,7 @@ func TestListCards(t *testing.T) {
 	})
 	defer server.Close()
 
-	cards, err := c.ListCards()
+	cards, err := c.ListCards(context.Background())
 	if err != nil {
 		t.Fatalf("ListCards failed: %v", err)
 	}
@@ -76,7 +77,7 @@ func TestGetCard(t *testing.T) {
 	})
 	defer server.Close()
 
-	card, err := c.GetCard(1)
+	card, err := c.GetCard(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("GetCard failed: %v", err)
 	}
@@ -120,7 +121,7 @@ func TestRunCard(t *testing.T) {
 	})
 	defer server.Close()
 
-	result, err := c.RunCard(1)
+	result, err := c.RunCard(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("RunCard failed: %v", err)
 	}
@@ -143,7 +144,7 @@ func TestGetCardNotFound(t *testing.T) {
 	})
 	defer server.Close()
 
-	_, err := c.GetCard(999)
+	_, err := c.GetCard(context.Background(), 999)
 	if err == nil {
 		t.Fatal("expected error for 404 response")
 	}
@@ -156,7 +157,7 @@ func TestRunCardNotFound(t *testing.T) {
 	})
 	defer server.Close()
 
-	_, err := c.RunCard(999)
+	_, err := c.RunCard(context.Background(), 999)
 	if err == nil {
 		t.Fatal("expected error for 404 response")
 	}
@@ -265,7 +266,7 @@ func TestParameterizedCardRun(t *testing.T) {
 	})
 	defer server.Close()
 
-	result, err := c.RunCardWithParams(1, map[string]string{"timeframe_days": "14"})
+	result, err := c.RunCardWithParams(context.Background(), 1, map[string]string{"timeframe_days": "14"})
 	if err != nil {
 		t.Fatalf("RunCardWithParams failed: %v", err)
 	}

@@ -52,7 +52,10 @@ func runFieldGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	field, err := c.GetField(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	field, err := c.GetField(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -71,7 +74,10 @@ func runFieldSummary(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	summary, err := c.GetFieldSummary(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	summary, err := c.GetFieldSummary(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -90,7 +96,10 @@ func runFieldValues(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	values, err := c.GetFieldValues(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	values, err := c.GetFieldValues(ctx, id)
 	if err != nil {
 		return err
 	}

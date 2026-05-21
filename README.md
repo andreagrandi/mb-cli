@@ -62,6 +62,7 @@ export MB_REDACT_PII=false  # Disable PII redaction (enabled by default)
 | `--format`, `-f` | Output format: `json`, `table` | `json` |
 | `--verbose`, `-v` | Show request details on stderr | `false` |
 | `--redact-pii` | Redact PII values in query results | `true` |
+| `--timeout` | Timeout for a command's API requests (`0` disables) | `30s` |
 
 ### Database commands
 

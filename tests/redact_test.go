@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -251,7 +252,7 @@ func TestRedactPIIIntegration(t *testing.T) {
 		c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 		c.RedactPII = true
 
-		result, err := c.RunNativeQuery(1, "SELECT id, email, name FROM users")
+		result, err := c.RunNativeQuery(context.Background(), 1, "SELECT id, email, name FROM users")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -274,7 +275,7 @@ func TestRedactPIIIntegration(t *testing.T) {
 		c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 		c.RedactPII = false
 
-		result, err := c.RunNativeQuery(1, "SELECT id, email, name FROM users")
+		result, err := c.RunNativeQuery(context.Background(), 1, "SELECT id, email, name FROM users")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -288,7 +289,7 @@ func TestRedactPIIIntegration(t *testing.T) {
 		c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 		c.RedactPII = true
 
-		_, err := c.ExportNativeQuery(1, "SELECT 1", "csv")
+		_, err := c.ExportNativeQuery(context.Background(), 1, "SELECT 1", "csv")
 		if err == nil {
 			t.Fatal("expected error for export with redaction enabled")
 		}
@@ -309,7 +310,7 @@ func TestRedactPIIIntegration(t *testing.T) {
 		c := client.NewClient(&config.Config{Host: exportServer.URL, APIKey: "test"})
 		c.RedactPII = false
 
-		data, err := c.ExportNativeQuery(1, "SELECT 1", "csv")
+		data, err := c.ExportNativeQuery(context.Background(), 1, "SELECT 1", "csv")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -371,7 +372,7 @@ func TestRunStructuredQueryRedaction(t *testing.T) {
 	c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 	c.RedactPII = true
 
-	result, err := c.RunStructuredQuery(1, 10, [][]any{{"=", []any{"field", 100, nil}, "x"}}, 0)
+	result, err := c.RunStructuredQuery(context.Background(), 1, 10, [][]any{{"=", []any{"field", 100, nil}, "x"}}, 0)
 	if err != nil {
 		t.Fatalf("RunStructuredQuery failed: %v", err)
 	}
@@ -382,7 +383,7 @@ func TestExportStructuredQueryBlockedWhenRedacting(t *testing.T) {
 	c := client.NewClient(&config.Config{Host: "http://example.invalid", APIKey: "test"})
 	c.RedactPII = true
 
-	_, err := c.ExportStructuredQuery(1, 10, [][]any{{"=", []any{"field", 100, nil}, "x"}}, 0, "csv")
+	_, err := c.ExportStructuredQuery(context.Background(), 1, 10, [][]any{{"=", []any{"field", 100, nil}, "x"}}, 0, "csv")
 	if err == nil {
 		t.Fatal("expected error for export with redaction enabled")
 	}
@@ -405,7 +406,7 @@ func TestGetTableDataRedaction(t *testing.T) {
 	c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 	c.RedactPII = true
 
-	result, err := c.GetTableData(42)
+	result, err := c.GetTableData(context.Background(), 42)
 	if err != nil {
 		t.Fatalf("GetTableData failed: %v", err)
 	}
@@ -434,7 +435,7 @@ func TestRunCardRedaction(t *testing.T) {
 	c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 	c.RedactPII = true
 
-	result, err := c.RunCard(7)
+	result, err := c.RunCard(context.Background(), 7)
 	if err != nil {
 		t.Fatalf("RunCard failed: %v", err)
 	}
@@ -479,7 +480,7 @@ func TestRunCardEnrichesSemanticTypesWhenMissing(t *testing.T) {
 	c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 	c.RedactPII = true
 
-	result, err := c.RunCard(7)
+	result, err := c.RunCard(context.Background(), 7)
 	if err != nil {
 		t.Fatalf("RunCard failed: %v", err)
 	}
@@ -522,7 +523,7 @@ func TestRunCardWithParamsRedaction(t *testing.T) {
 	c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 	c.RedactPII = true
 
-	result, err := c.RunCardWithParams(7, map[string]string{"region": "EU"})
+	result, err := c.RunCardWithParams(context.Background(), 7, map[string]string{"region": "EU"})
 	if err != nil {
 		t.Fatalf("RunCardWithParams failed: %v", err)
 	}
@@ -555,7 +556,7 @@ func TestRunDashboardCardRedaction(t *testing.T) {
 	c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 	c.RedactPII = true
 
-	result, err := c.RunDashboardCard(1, 200, 7, map[string]string{"region": "EU"})
+	result, err := c.RunDashboardCard(context.Background(), 1, 200, 7, map[string]string{"region": "EU"})
 	if err != nil {
 		t.Fatalf("RunDashboardCard failed: %v", err)
 	}
@@ -628,7 +629,7 @@ func TestGetFieldValuesRedaction(t *testing.T) {
 			c := client.NewClient(&config.Config{Host: server.URL, APIKey: "test"})
 			c.RedactPII = tt.redactPII
 
-			values, err := c.GetFieldValues(tt.fieldID)
+			values, err := c.GetFieldValues(context.Background(), tt.fieldID)
 			if err != nil {
 				t.Fatalf("GetFieldValues failed: %v", err)
 			}
@@ -675,7 +676,7 @@ func TestEnrichSemanticTypes(t *testing.T) {
 				},
 			},
 		}
-		c.EnrichSemanticTypes(result, 1)
+		c.EnrichSemanticTypes(context.Background(), result, 1)
 		if result.Data.Columns[1].SemanticType != "type/Email" {
 			t.Errorf("expected email semantic type to be filled in, got %q", result.Data.Columns[1].SemanticType)
 		}
@@ -689,7 +690,7 @@ func TestEnrichSemanticTypes(t *testing.T) {
 				},
 			},
 		}
-		c.EnrichSemanticTypes(result, 1)
+		c.EnrichSemanticTypes(context.Background(), result, 1)
 		if result.Data.Columns[0].SemanticType != "type/Email" {
 			t.Errorf("expected PII semantic type to win for duplicate field name, got %q", result.Data.Columns[0].SemanticType)
 		}
@@ -710,7 +711,7 @@ func TestEnrichSemanticTypes(t *testing.T) {
 		}))
 		closed.Close()
 		nc := client.NewClient(&config.Config{Host: closed.URL, APIKey: "test"})
-		nc.EnrichSemanticTypes(result, 1)
+		nc.EnrichSemanticTypes(context.Background(), result, 1)
 		if result.Data.Columns[0].SemanticType != "type/PK" {
 			t.Errorf("expected SemanticType preserved, got %q", result.Data.Columns[0].SemanticType)
 		}

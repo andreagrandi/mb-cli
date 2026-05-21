@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -98,7 +99,10 @@ func runDashboardAnalyze(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	analysis, err := analyzeDashboard(c, id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	analysis, err := analyzeDashboard(ctx, c, id)
 	if err != nil {
 		return err
 	}
@@ -111,8 +115,8 @@ func runDashboardAnalyze(cmd *cobra.Command, args []string) error {
 	return formatDashboardAnalysisTable(os.Stdout, analysis)
 }
 
-func analyzeDashboard(c *client.Client, id int) (*dashboardAnalysis, error) {
-	dashboard, err := c.GetDashboard(id)
+func analyzeDashboard(ctx context.Context, c *client.Client, id int) (*dashboardAnalysis, error) {
+	dashboard, err := c.GetDashboard(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +170,7 @@ func analyzeDashboard(c *client.Client, id int) (*dashboardAnalysis, error) {
 		entry.ParameterIDs = collectDashcardParameterIDs(dashCard)
 
 		if dashCard.CardID != nil {
-			fullCard, chain, baseCard, err := traceCardLineage(c, cardCache, *dashCard.CardID)
+			fullCard, chain, baseCard, err := traceCardLineage(ctx, c, cardCache, *dashCard.CardID)
 			if err != nil {
 				return nil, err
 			}
@@ -275,8 +279,8 @@ func collectDashcardParameterIDs(dashCard client.DashCard) []string {
 	return ids
 }
 
-func traceCardLineage(c *client.Client, cache map[int]*client.Card, cardID int) (*client.Card, []int, *client.Card, error) {
-	current, err := getAnalyzedCard(c, cache, cardID)
+func traceCardLineage(ctx context.Context, c *client.Client, cache map[int]*client.Card, cardID int) (*client.Card, []int, *client.Card, error) {
+	current, err := getAnalyzedCard(ctx, c, cache, cardID)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -291,7 +295,7 @@ func traceCardLineage(c *client.Client, cache map[int]*client.Card, cardID int) 
 		chain = append(chain, *sourceCardID)
 		seen[*sourceCardID] = true
 
-		current, err = getAnalyzedCard(c, cache, *sourceCardID)
+		current, err = getAnalyzedCard(ctx, c, cache, *sourceCardID)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -300,12 +304,12 @@ func traceCardLineage(c *client.Client, cache map[int]*client.Card, cardID int) 
 	return cache[cardID], chain, nil, nil
 }
 
-func getAnalyzedCard(c *client.Client, cache map[int]*client.Card, cardID int) (*client.Card, error) {
+func getAnalyzedCard(ctx context.Context, c *client.Client, cache map[int]*client.Card, cardID int) (*client.Card, error) {
 	if card, ok := cache[cardID]; ok {
 		return card, nil
 	}
 
-	card, err := c.GetCard(cardID)
+	card, err := c.GetCard(ctx, cardID)
 	if err != nil {
 		return nil, err
 	}

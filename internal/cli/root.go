@@ -1,10 +1,14 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/andreagrandi/mb-cli/internal/version"
 	"github.com/spf13/cobra"
@@ -32,7 +36,10 @@ Before using mb-cli, set your environment variables:
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		errorFormat, _ := rootCmd.PersistentFlags().GetString("error-format")
 		if errorFormat == "json" {
 			writeJSONError(err)
@@ -43,11 +50,28 @@ func Execute() {
 	}
 }
 
+// requestContext derives a cancellable context for a command, applying the
+// configured --timeout. The returned cancel func must always be called.
+func requestContext(cmd *cobra.Command) (context.Context, context.CancelFunc) {
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	timeout, _ := cmd.Flags().GetDuration("timeout")
+	if timeout <= 0 {
+		return context.WithCancel(ctx)
+	}
+
+	return context.WithTimeout(ctx, timeout)
+}
+
 func init() {
 	rootCmd.PersistentFlags().StringP("format", "f", "json", "Output format: json, table")
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Show request details on stderr")
 	rootCmd.PersistentFlags().String("error-format", "text", "Error output format: text, json")
 	rootCmd.PersistentFlags().Bool("redact-pii", true, "Redact PII values in query results (disable with --redact-pii=false)")
+	rootCmd.PersistentFlags().Duration("timeout", 30*time.Second, "Timeout for a command's API requests (0 disables)")
 }
 
 type jsonError struct {
@@ -72,6 +96,10 @@ func classifyError(err error) (errorType, suggestion string) {
 	switch {
 	case strings.Contains(msg, "MB_HOST") || strings.Contains(msg, "MB_API_KEY"):
 		return "CONFIG_ERROR", "Set MB_HOST and MB_API_KEY environment variables"
+	case strings.Contains(msg, "request timed out"):
+		return "TIMEOUT_ERROR", "Increase --timeout or check connectivity to MB_HOST"
+	case strings.Contains(msg, "request canceled"):
+		return "CANCELED_ERROR", ""
 	case strings.Contains(msg, "parameterized query failed"):
 		return "API_ERROR", "Check parameter IDs with 'mb-cli dashboard get <id>' or 'mb-cli card get <id> --full'"
 	case strings.Contains(msg, "API request failed with status 401"),

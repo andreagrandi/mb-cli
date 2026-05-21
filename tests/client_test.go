@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -98,7 +99,7 @@ func TestGet_WithQueryParams(t *testing.T) {
 	params := url.Values{}
 	params.Set("include", "tables")
 
-	resp, err := c.Get("/api/database/", params)
+	resp, err := c.Get(context.Background(), "/api/database/", params)
 	if err != nil {
 		t.Fatalf("GET request failed: %v", err)
 	}
@@ -122,7 +123,7 @@ func TestGet_WithoutQueryParams(t *testing.T) {
 
 	c := newTestClient(server.URL)
 
-	resp, err := c.Get("/api/database/1", nil)
+	resp, err := c.Get(context.Background(), "/api/database/1", nil)
 	if err != nil {
 		t.Fatalf("GET request failed: %v", err)
 	}
@@ -166,7 +167,7 @@ func TestPost_WithJSONBody(t *testing.T) {
 		"native":   map[string]any{"query": "SELECT 1"},
 	}
 
-	resp, err := c.Post("/api/dataset/", requestBody)
+	resp, err := c.Post(context.Background(), "/api/dataset/", requestBody)
 	if err != nil {
 		t.Fatalf("POST request failed: %v", err)
 	}
@@ -186,7 +187,7 @@ func TestDo_Error4xx(t *testing.T) {
 
 	c := newTestClient(server.URL)
 
-	_, err := c.Get("/api/database/999", nil)
+	_, err := c.Get(context.Background(), "/api/database/999", nil)
 	if err == nil {
 		t.Fatal("expected error for 400 response")
 	}
@@ -209,7 +210,7 @@ func TestDo_Error5xx(t *testing.T) {
 
 	c := newTestClient(server.URL)
 
-	_, err := c.Get("/api/database/", nil)
+	_, err := c.Get(context.Background(), "/api/database/", nil)
 	if err == nil {
 		t.Fatal("expected error for 500 response")
 	}
@@ -229,7 +230,7 @@ func TestDecodeJSON(t *testing.T) {
 
 	c := newTestClient(server.URL)
 
-	resp, err := c.Get("/api/database/42", nil)
+	resp, err := c.Get(context.Background(), "/api/database/42", nil)
 	if err != nil {
 		t.Fatalf("GET request failed: %v", err)
 	}
@@ -322,7 +323,7 @@ func TestDo_SessionTokenOmitsAPIKeyHeader(t *testing.T) {
 	defer server.Close()
 
 	c := newTestClientWithSessionToken(server.URL)
-	resp, err := c.Post("/api/dataset/", map[string]any{"query": "SELECT 1"})
+	resp, err := c.Post(context.Background(), "/api/dataset/", map[string]any{"query": "SELECT 1"})
 	if err != nil {
 		t.Fatalf("POST request failed: %v", err)
 	}
@@ -339,7 +340,7 @@ func TestVerboseMode(t *testing.T) {
 	c := newTestClient(server.URL)
 	c.Verbose = true
 
-	resp, err := c.Get("/api/database/", nil)
+	resp, err := c.Get(context.Background(), "/api/database/", nil)
 	if err != nil {
 		t.Fatalf("GET request failed: %v", err)
 	}

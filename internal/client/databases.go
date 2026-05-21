@@ -1,19 +1,20 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 )
 
 // ListDatabases retrieves all databases. If includeTables is true, tables are included.
-func (c *Client) ListDatabases(includeTables bool) ([]Database, error) {
+func (c *Client) ListDatabases(ctx context.Context, includeTables bool) ([]Database, error) {
 	var params url.Values
 	if includeTables {
 		params = url.Values{}
 		params.Set("include", "tables")
 	}
 
-	resp, err := c.Get("/api/database/", params)
+	resp, err := c.Get(ctx, "/api/database/", params)
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +30,8 @@ func (c *Client) ListDatabases(includeTables bool) ([]Database, error) {
 }
 
 // GetDatabase retrieves a single database by ID.
-func (c *Client) GetDatabase(id int) (*Database, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/database/%d", id), nil)
+func (c *Client) GetDatabase(ctx context.Context, id int) (*Database, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/database/%d", id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +45,8 @@ func (c *Client) GetDatabase(id int) (*Database, error) {
 }
 
 // GetDatabaseMetadata retrieves full metadata (tables + fields) for a database.
-func (c *Client) GetDatabaseMetadata(id int) (*DatabaseMetadata, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/database/%d/metadata", id), nil)
+func (c *Client) GetDatabaseMetadata(ctx context.Context, id int) (*DatabaseMetadata, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/database/%d/metadata", id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +60,8 @@ func (c *Client) GetDatabaseMetadata(id int) (*DatabaseMetadata, error) {
 }
 
 // GetDatabaseFields retrieves all fields in a database.
-func (c *Client) GetDatabaseFields(id int) ([]Field, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/database/%d/fields", id), nil)
+func (c *Client) GetDatabaseFields(ctx context.Context, id int) ([]Field, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/database/%d/fields", id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +75,8 @@ func (c *Client) GetDatabaseFields(id int) ([]Field, error) {
 }
 
 // ListDatabaseSchemas retrieves schema names for a database.
-func (c *Client) ListDatabaseSchemas(id int) ([]string, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/database/%d/schemas", id), nil)
+func (c *Client) ListDatabaseSchemas(ctx context.Context, id int) ([]string, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/database/%d/schemas", id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +90,8 @@ func (c *Client) ListDatabaseSchemas(id int) ([]string, error) {
 }
 
 // GetDatabaseSchema retrieves tables in a specific schema of a database.
-func (c *Client) GetDatabaseSchema(id int, schema string) ([]Table, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/database/%d/schema/%s", id, url.PathEscape(schema)), nil)
+func (c *Client) GetDatabaseSchema(ctx context.Context, id int, schema string) ([]Table, error) {
+	resp, err := c.Get(ctx, fmt.Sprintf("/api/database/%d/schema/%s", id, url.PathEscape(schema)), nil)
 	if err != nil {
 		return nil, err
 	}

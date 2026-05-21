@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -41,7 +42,7 @@ func TestSearch(t *testing.T) {
 	})
 	defer server.Close()
 
-	results, err := c.Search("users", nil)
+	results, err := c.Search(context.Background(), "users", nil)
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -79,7 +80,7 @@ func TestSearchWithModels(t *testing.T) {
 	})
 	defer server.Close()
 
-	results, err := c.Search("users", []string{"table", "card"})
+	results, err := c.Search(context.Background(), "users", []string{"table", "card"})
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -98,7 +99,7 @@ func TestSearchEmpty(t *testing.T) {
 	})
 	defer server.Close()
 
-	results, err := c.Search("nonexistent", nil)
+	results, err := c.Search(context.Background(), "nonexistent", nil)
 	if err != nil {
 		t.Fatalf("Search failed: %v", err)
 	}
@@ -115,7 +116,7 @@ func TestSearchAPIError(t *testing.T) {
 	})
 	defer server.Close()
 
-	_, err := c.Search("users", nil)
+	_, err := c.Search(context.Background(), "users", nil)
 	if err == nil {
 		t.Fatal("expected error for 401 response")
 	}

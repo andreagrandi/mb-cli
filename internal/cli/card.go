@@ -66,7 +66,10 @@ func runCardList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cards, err := c.ListCards()
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	cards, err := c.ListCards(ctx)
 	if err != nil {
 		return err
 	}
@@ -85,7 +88,10 @@ func runCardGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	card, err := c.GetCard(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	card, err := c.GetCard(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -114,7 +120,10 @@ func runCardRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	result, err := c.RunCardWithParams(id, params)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	result, err := c.RunCardWithParams(ctx, id, params)
 	if err != nil {
 		return wrapParameterizedRunError(err)
 	}

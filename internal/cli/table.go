@@ -64,7 +64,10 @@ func runTableList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	tables, err := c.ListTables()
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	tables, err := c.ListTables(ctx)
 	if err != nil {
 		return err
 	}
@@ -83,7 +86,10 @@ func runTableGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	table, err := c.GetTable(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	table, err := c.GetTable(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -102,7 +108,10 @@ func runTableMetadata(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	meta, err := c.GetTableMetadata(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	meta, err := c.GetTableMetadata(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -121,7 +130,10 @@ func runTableFKs(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fks, err := c.GetTableFKs(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	fks, err := c.GetTableFKs(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -140,7 +152,10 @@ func runTableData(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	result, err := c.GetTableData(id)
+	ctx, cancel := requestContext(cmd)
+	defer cancel()
+
+	result, err := c.GetTableData(ctx, id)
 	if err != nil {
 		return err
 	}
