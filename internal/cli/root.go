@@ -156,6 +156,8 @@ func notFoundSuggestion(kind mberr.ResourceKind) string {
 		return "Check that the dashboard ID exists and is visible to this API key"
 	case mberr.ResourceCard:
 		return "Check that the card ID exists and is visible to this API key"
+	case mberr.ResourceCollection:
+		return "Check that the collection ID exists and is visible to this API key (use 'root' for the root collection)"
 	case mberr.ResourceDashboardParameter:
 		return "Check that the dashboard parameter ID exists for this dashboard"
 	default:

@@ -38,6 +38,9 @@ Set both environment variables (required):
 | `dashboard run-card <dashboard-id> <dashcard-id> <card-id>` | Execute a dashboard card | dashboard-id, dashcard-id, card-id (positional) | none |
 | `dashboard params values <dashboard-id> <param-key>` | List valid dashboard parameter values | dashboard-id, param-key (positional) | none |
 | `dashboard params search <dashboard-id> <param-key> <query>` | Search dashboard parameter values | dashboard-id, param-key, query (positional) | none |
+| `collection list` | List collections | none | none |
+| `collection get <id>` | Get collection details (`root` for root collection) | id (positional) | none |
+| `collection items <id>` | List cards, dashboards, and nested collections in a collection | id (positional) | none |
 | `search <query>` | Search across Metabase items | query (positional) | none |
 | `context` | Print this agent context document | none | none |
 | `version` | Print version | none | none |
@@ -89,6 +92,11 @@ Set both environment variables (required):
 |------|------|----------|---------|-------------|
 | `--fields` | string | no | | Comma-separated columns to include in output |
 | `--param` | string[] | no | | Parameter in `key=value` format (repeatable) |
+
+### `collection items`
+| Flag | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--models` | string | no | | Filter by item type (comma-separated: `card,dashboard,collection,dataset,snippet`) |
 
 ### `search`
 | Flag | Type | Required | Default | Description |
@@ -210,6 +218,12 @@ mb-cli dashboard get 298
 mb-cli dashboard cards 298
 mb-cli dashboard params values 298 merchant_name
 mb-cli dashboard analyze 298
+
+# Browse collections and discover their contents
+mb-cli collection list
+mb-cli collection get root
+mb-cli collection items 12
+mb-cli collection items root --models card,dashboard
 
 # Get table output for terminal reading
 mb-cli database list --format table
