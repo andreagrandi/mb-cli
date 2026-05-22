@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-22
+
 - Add `docs/RECIPES.md` with worked end-to-end recipes for schema discovery, saved-question inspection, dashboard analysis, parameterized card/dashboard runs, and PII-safe querying, linked from the README (#16)
 - Expand the `context` agent document with end-to-end workflows for schema, dashboard, and saved-question exploration plus an explicit safe-querying section (#15)
 - Add `card params` and `dashboard params list` commands to discover the parameters a saved question or dashboard accepts before running it; failed parameterized runs now point to the exact discovery command (#14)
