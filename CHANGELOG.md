@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Add install smoke tests for `go install`, release artifacts, and the generated Homebrew formula, plus release verification docs in `docs/RELEASE.md` (#19)
+
 ## [0.3.0] - 2026-05-22
 
 - Add `docs/RECIPES.md` with worked end-to-end recipes for schema discovery, saved-question inspection, dashboard analysis, parameterized card/dashboard runs, and PII-safe querying, linked from the README (#16)

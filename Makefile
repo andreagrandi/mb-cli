@@ -1,4 +1,4 @@
-.PHONY: build test test-verbose fmt vet lint clean deps build-all help
+.PHONY: build test test-verbose fmt vet lint clean deps build-all install-smoke-tests help
 
 BINARY_NAME := mb-cli
 BUILD_DIR := bin
@@ -44,6 +44,9 @@ build-all:
 	@GOOS=darwin GOARCH=arm64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 $(MAIN_PKG)
 	@GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe $(MAIN_PKG)
 
+install-smoke-tests:
+	@scripts/install-smoke-tests.sh
+
 help:
 	@echo "Available targets:"
 	@echo "  build        - Build the binary to bin/"
@@ -55,4 +58,5 @@ help:
 	@echo "  clean        - Remove build artifacts"
 	@echo "  deps         - Download and tidy dependencies"
 	@echo "  build-all    - Cross-platform builds"
+	@echo "  install-smoke-tests - Run install path smoke tests"
 	@echo "  help         - Show this help"

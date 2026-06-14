@@ -225,6 +225,11 @@ git tag v<version>
 git push origin v<version>
 ```
 
+8. After the release workflow finishes, verify the public install paths:
+
+- Follow the manual release checks in `docs/RELEASE.md`.
+- Confirm `go install`, Homebrew, and binary downloads all produce a working `mb-cli --help` and `mb-cli version`.
+
 Notes:
 
 - The tag push triggers `.github/workflows/release.yml`.
