@@ -1,0 +1,102 @@
+name: Install Smoke Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  go-install:
+    name: Go install smoke test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.1'
+
+      - name: Install via go install
+        run: go install ./cmd/mb-cli
+
+      - name: Verify mb-cli --help
+        run: |
+          MBCLI_BIN="$(go env GOPATH)/bin/mb-cli"
+          "$MBCLI_BIN" --help
+
+      - name: Verify mb-cli version
+        run: |
+          MBCLI_BIN="$(go env GOPATH)/bin/mb-cli"
+          "$MBCLI_BIN" version
+
+  release-artifacts:
+    name: Release artifacts smoke test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.1'
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          install-only: true
+
+      - name: Build release artifacts
+        run: goreleaser release --snapshot --clean
+
+      - name: Verify Linux amd64 release binary
+        run: |
+          ./dist/mb-cli_linux_amd64_v1/mb-cli --help
+          ./dist/mb-cli_linux_amd64_v1/mb-cli version
+
+      - name: Verify release archives exist
+        run: |
+          test -f dist/mb-cli_Linux_x86_64.tar.gz
+          test -f dist/mb-cli_Linux_arm64.tar.gz
+          test -f dist/mb-cli_Darwin_x86_64.tar.gz
+          test -f dist/mb-cli_Darwin_arm64.tar.gz
+          test -f dist/mb-cli_Windows_x86_64.zip
+          test -f dist/checksums.txt
+
+  homebrew-formula:
+    name: Homebrew formula smoke test
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.1'
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          install-only: true
+
+      - name: Generate Homebrew formula
+        run: goreleaser release --snapshot --clean
+
+      - name: Verify formula syntax
+        run: ruby -c dist/homebrew/Formula/mb-cli.rb
